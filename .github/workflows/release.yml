@@ -50,8 +50,9 @@ jobs:
       - name: Name the APK after the tag
         run: cp app/build/outputs/apk/release/app-release.apk "kotodo-${{ github.ref_name }}.apk"
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v2
         with:
           files: kotodo-${{ github.ref_name }}.apk
           generate_release_notes: true
+          draft: true

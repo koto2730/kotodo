@@ -98,10 +98,12 @@ Run the unit tests (repeat-rule arithmetic and CSV round trips):
 Every push to `main` and every PR runs unit tests, lint, and a debug build via
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml). It needs no secrets.
 
-Pushing a tag like `v1.0.0` builds a **signed** release APK and publishes it as a
-[GitHub Release](../../releases), via
+Pushing a tag like `v1.0.0` builds a **signed** release APK and attaches it to a
+**draft** [GitHub Release](../../releases), via
 [`.github/workflows/release.yml`](.github/workflows/release.yml) — that's the
-supported way to distribute the app; there is no Play Store listing.
+supported way to distribute the app; there is no Play Store listing. The release
+is a draft on purpose: nothing is visible to anyone until you open it on the
+Releases page, check the attached APK, and click **Publish release**.
 
 ### Building a signed release locally / ローカルでの署名ビルド
 
@@ -142,9 +144,11 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-That triggers the release workflow; the signed APK shows up on the
-[Releases](../../releases) page a few minutes later. Bump `versionCode` and
-`versionName` in [`app/build.gradle.kts`](app/build.gradle.kts) before tagging.
+That triggers the release workflow; a **draft** release with the signed APK shows
+up on the [Releases](../../releases) page a few minutes later — review it and
+click **Publish release** when you're ready for it to go public. Bump
+`versionCode` and `versionName` in [`app/build.gradle.kts`](app/build.gradle.kts)
+before tagging.
 
 ## Data model / データモデル
 
