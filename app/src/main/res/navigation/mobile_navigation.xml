@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_today">
+
+    <!--
+      The three list destinations share one fragment class; the `mode` argument
+      decides which query it runs.
+    -->
+    <fragment
+        android:id="@+id/nav_today"
+        android:name="com.mugime.kotodo.ui.list.TodoListFragment"
+        android:label="@string/menu_today"
+        tools:layout="@layout/fragment_todo_list">
+        <argument
+            android:name="mode"
+            android:defaultValue="TODAY"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_all"
+        android:name="com.mugime.kotodo.ui.list.TodoListFragment"
+        android:label="@string/menu_all"
+        tools:layout="@layout/fragment_todo_list">
+        <argument
+            android:name="mode"
+            android:defaultValue="ALL"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_completed"
+        android:name="com.mugime.kotodo.ui.list.TodoListFragment"
+        android:label="@string/menu_completed"
+        tools:layout="@layout/fragment_todo_list">
+        <argument
+            android:name="mode"
+            android:defaultValue="COMPLETED"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_edit"
+        android:name="com.mugime.kotodo.ui.edit.TodoEditFragment"
+        android:label="@string/title_edit_todo"
+        tools:layout="@layout/fragment_todo_edit">
+        <argument
+            android:name="todoId"
+            android:defaultValue="0L"
+            app:argType="long" />
+    </fragment>
+</navigation>

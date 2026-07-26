@@ -1,0 +1,8 @@
+title,description,priority,group,start_date,due_date,repeat,repeat_type,repeat_interval,week_rule,month_rule,year_rule,repeat_end_date,notify,notify_time,completed,completed_date
+週次レポート,先週分をまとめて提出する,highest,仕事,,2026-07-31,true,weekly,1,FRI,,,2026-12-31,true,09:00,false,
+ゴミ出し,燃えるゴミ,middle,家事,,2026-07-27,true,weekly,1,MON|THU,,,,true,07:00,false,
+家賃を払う,,high,お金,,2026-08-01,true,monthly,1,,1,,,true,10:00,false,
+健康診断の予約,毎年7月に受ける,high,健康,,2026-07-15,true,yearly,1,,15,7,,false,09:00,false,
+歯医者,,middle,健康,2026-07-20,2026-07-26,false,none,1,,,,,false,09:00,false,
+読みかけの本を読む,日付は決めない,low,趣味,,,false,none,1,,,,,false,09:00,false,
+- [x] 図書館に本を返す,チェックボックス付きでも取り込める,low,趣味,,2026-07-24,false,none,1,,,,,false,09:00,,

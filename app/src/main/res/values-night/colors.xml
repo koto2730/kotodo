@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Lighter variants so stripes, headings and secondary text stay legible on dark. -->
+    <color name="section_label">@color/slate_200</color>
+
+    <color name="priority_highest">#FFEF5350</color>
+    <color name="priority_high">#FFFFCA28</color>
+    <color name="priority_middle">#FF42A5F5</color>
+    <color name="priority_low">#FF9CCC65</color>
+    <color name="priority_lowest">#FFBDBDBD</color>
+
+    <color name="meta_text">#FFA3B1B8</color>
+    <color name="overdue">#FFEF5350</color>
+</resources>

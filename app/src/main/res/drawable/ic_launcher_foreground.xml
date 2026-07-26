@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A tick with a strike-through line under it: the app's defining gesture, where
+  completing a todo draws a line through its title.
+
+  The mark spans about 39 of the 108 units, a little over half the 72-unit circle a
+  launcher mask exposes. That leaves visible margin on every side, so it sits
+  comfortably next to other launcher icons instead of filling its circle.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:pathData="M39.5,49 L49,58.5 L70,37.5"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="8" />
+
+    <path
+        android:pathData="M38,71 L70,71"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeWidth="6.5" />
+</vector>

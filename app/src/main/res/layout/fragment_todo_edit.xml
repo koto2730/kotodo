@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.edit.TodoEditFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_title"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/field_title">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionNext"
+                android:inputType="textCapSentences" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="@string/field_description">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top|start"
+                android:inputType="textMultiLine|textCapSentences"
+                android:minLines="2" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            style="@style/Kotodo.SectionLabel"
+            android:text="@string/field_priority" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chips_priority"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleSelection="true" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="@string/field_group">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/input_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:completionThreshold="1"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Scheduled dates -->
+        <TextView
+            style="@style/Kotodo.SectionLabel"
+            android:text="@string/section_schedule" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/field_start_date"
+                android:textAppearance="?attr/textAppearanceBody2" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_start_date"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="2026/07/25" />
+
+            <ImageButton
+                android:id="@+id/button_clear_start"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_clear_date"
+                app:srcCompat="@drawable/ic_clear"
+                app:tint="?attr/colorControlNormal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/field_due_date"
+                android:textAppearance="?attr/textAppearanceBody2" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_due_date"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="2026/07/25" />
+
+            <ImageButton
+                android:id="@+id/button_clear_due"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_clear_date"
+                app:srcCompat="@drawable/ic_clear"
+                app:tint="?attr/colorControlNormal" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/hint_undated"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/meta_text" />
+
+        <!-- Reminder -->
+        <TextView
+            style="@style/Kotodo.SectionLabel"
+            android:text="@string/section_notification" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_notify"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/field_notify" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_notify_time"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="09:00" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/hint_notify"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/meta_text" />
+
+        <!-- Repetition -->
+        <TextView
+            style="@style/Kotodo.SectionLabel"
+            android:text="@string/section_repeat" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_repeat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/field_repeat" />
+
+        <LinearLayout
+            android:id="@+id/repeat_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chips_repeat_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:selectionRequired="true"
+                app:singleSelection="true" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/field_repeat_interval"
+                    android:textAppearance="?attr/textAppearanceBody2" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="88dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_repeat_interval"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        tools:text="1" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/label_interval_unit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    tools:text="日ごと" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/week_rule_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    style="@style/Kotodo.SectionLabel"
+                    android:text="@string/field_week_rule" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chips_week_rule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/month_rule_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/Kotodo.SectionLabel"
+                    android:text="@string/field_month_rule" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chips_month_rule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:chipSpacingHorizontal="2dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/year_rule_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/Kotodo.SectionLabel"
+                    android:text="@string/field_year_rule" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chips_year_rule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/field_repeat_end"
+                    android:textAppearance="?attr/textAppearanceBody2" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_repeat_end"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="未設定" />
+
+                <ImageButton
+                    android:id="@+id/button_clear_repeat_end"
+                    style="?attr/borderlessButtonStyle"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:contentDescription="@string/action_clear_date"
+                    app:srcCompat="@drawable/ic_clear" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/repeat_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:textColor="@color/meta_text"
+                tools:text="毎週 (月・水)" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/hint_repeat"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:textColor="@color/meta_text" />
+        </LinearLayout>
+
+        <!-- Completion -->
+        <TextView
+            style="@style/Kotodo.SectionLabel"
+            android:text="@string/section_completion" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_completed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/field_completed" />
+
+        <TextView
+            android:id="@+id/text_completed_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/meta_text"
+            tools:text="完了日: 2026/07/25" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

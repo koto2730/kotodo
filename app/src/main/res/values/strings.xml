@@ -1,0 +1,167 @@
+<resources>
+    <!-- The app name is a brand, identical in every locale. -->
+    <string name="app_name" translatable="false">Kotodo</string>
+    <string name="nav_header_subtitle">Offline todo list</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <!-- Drawer / screens -->
+    <string name="menu_today">Today</string>
+    <string name="menu_all">All todos</string>
+    <string name="menu_completed">Completed</string>
+    <string name="title_edit_todo">Edit todo</string>
+
+    <!-- Actions -->
+    <string name="action_add_todo">Add todo</string>
+    <string name="action_filter_sort">Filter and sort</string>
+    <string name="action_pick_date">Pick a date</string>
+    <string name="action_import_csv">Import CSV…</string>
+    <string name="action_export_csv">Export CSV…</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_reset_filters">Reset filters</string>
+    <string name="action_previous_day">Previous day</string>
+    <string name="action_next_day">Next day</string>
+    <string name="action_clear_date">Clear date</string>
+    <string name="action_toggle_complete">Mark as done</string>
+    <string name="action_import_merge">Add</string>
+    <string name="action_import_replace">Replace all</string>
+    <string name="action_clear_completed">Clear all</string>
+
+    <!-- List -->
+    <string name="empty_list">Nothing to do. Tap + to add a todo.</string>
+    <string name="empty_filtered">No todos match the current filters.</string>
+    <string name="todo_deleted">Todo deleted</string>
+    <string name="repeat_next_created">Next occurrence scheduled for %s</string>
+
+    <!-- Filter and sort sheet -->
+    <string name="filter_time">Dates</string>
+    <string name="filter_priority">Priority</string>
+    <string name="filter_group">Group</string>
+    <string name="filter_no_group">No group</string>
+    <string name="filter_hide_completed">Hide completed</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort_ascending">Ascending</string>
+
+    <!-- Edit form -->
+    <string name="section_schedule">Schedule</string>
+    <string name="section_notification">Reminder</string>
+    <string name="section_repeat">Repeat</string>
+    <string name="section_completion">Completion</string>
+    <string name="field_title">Title</string>
+    <string name="field_description">Description</string>
+    <string name="field_priority">Priority</string>
+    <string name="field_group">Group</string>
+    <string name="field_start_date">Start date</string>
+    <string name="field_due_date">Due date</string>
+    <string name="field_notify">Notify me</string>
+    <string name="field_notify_time">Reminder time</string>
+    <string name="field_repeat">Repeats</string>
+    <string name="field_repeat_interval">Every</string>
+    <string name="field_week_rule">On these weekdays</string>
+    <string name="field_month_rule">On these days of the month</string>
+    <string name="field_year_rule">In these months</string>
+    <string name="field_repeat_end">Repeat until</string>
+    <string name="field_completed">Completed</string>
+    <string name="field_completed_on">Completed on %s</string>
+    <string name="field_not_completed">Not completed yet</string>
+    <string name="date_not_set">Not set</string>
+    <string name="error_title_required">A title is required</string>
+    <string name="hint_undated">A todo with no dates always stays on the list until you complete it.</string>
+    <string name="hint_notify">The reminder fires on the earlier of the two dates above.</string>
+    <string name="hint_repeat">Leaving the day pickers empty repeats on the same day as the due date.</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_delete_title">Delete this todo?</string>
+    <string name="dialog_delete_message">"%s" will be removed.</string>
+    <string name="dialog_clear_completed_title">Delete all completed todos?</string>
+    <string name="dialog_clear_completed_message">%d completed todos will be removed.</string>
+    <string name="dialog_import_title">Import CSV</string>
+    <string name="dialog_import_message">%1$d todos found, %2$d rows skipped. Add them to the current list, or replace everything?</string>
+
+    <!-- CSV results -->
+    <string name="import_failed">Could not read that file.</string>
+    <string name="import_nothing_found">No todos found in that file.</string>
+    <string name="export_failed">Could not write that file.</string>
+    <plurals name="import_done">
+        <item quantity="one">%d todo imported</item>
+        <item quantity="other">%d todos imported</item>
+    </plurals>
+    <plurals name="export_done">
+        <item quantity="one">%d todo exported</item>
+        <item quantity="other">%d todos exported</item>
+    </plurals>
+    <plurals name="completed_cleared">
+        <item quantity="one">%d todo deleted</item>
+        <item quantity="other">%d todos deleted</item>
+    </plurals>
+
+    <!-- Repeat descriptions -->
+    <string name="repeat_every_day">Daily</string>
+    <string name="repeat_every_n_days">Every %d days</string>
+    <string name="repeat_every_week">Weekly</string>
+    <string name="repeat_every_n_weeks">Every %d weeks</string>
+    <string name="repeat_every_month">Monthly</string>
+    <string name="repeat_every_n_months">Every %d months</string>
+    <string name="repeat_every_year">Yearly</string>
+    <string name="repeat_every_n_years">Every %d years</string>
+    <string name="repeat_detail_suffix"> (%s)</string>
+    <string name="day_of_month">%d</string>
+    <!-- Months and days of a yearly rule, e.g. "Jul" + "15" -->
+    <string name="repeat_month_day_join">%1$s %2$s</string>
+
+    <!-- List row meta line -->
+    <string name="meta_start">from %s</string>
+    <string name="meta_due">due %s</string>
+    <string name="meta_notify">alarm %s</string>
+    <string name="meta_completed">done %s</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Todo reminders</string>
+    <string name="notification_channel_description">Local reminders for scheduled todos</string>
+    <string name="notification_due_on">Due %s</string>
+    <string name="notification_starts_on">Starts %s</string>
+    <string name="notification_permission_denied">Reminders need notification permission.</string>
+
+    <string-array name="priority_labels">
+        <item>Highest</item>
+        <item>High</item>
+        <item>Middle</item>
+        <item>Low</item>
+        <item>Lowest</item>
+    </string-array>
+
+    <!-- Order must match ListOptions.TimeFilter -->
+    <string-array name="time_filter_labels">
+        <item>All</item>
+        <item>Overdue</item>
+        <item>Due today</item>
+        <item>No date</item>
+        <item>Upcoming</item>
+    </string-array>
+
+    <!-- Order must match ListOptions.SortKey -->
+    <string-array name="sort_labels">
+        <item>Priority</item>
+        <item>Due date</item>
+        <item>Start date</item>
+        <item>Title</item>
+        <item>Group</item>
+        <item>Created</item>
+    </string-array>
+
+    <!-- Order must match the array in TodoEditFragment.buildRepeatTypeChips -->
+    <string-array name="repeat_type_labels">
+        <item>Daily</item>
+        <item>Weekly</item>
+        <item>Monthly</item>
+        <item>Yearly</item>
+    </string-array>
+
+    <string-array name="repeat_interval_units">
+        <item>day(s)</item>
+        <item>week(s)</item>
+        <item>month(s)</item>
+        <item>year(s)</item>
+    </string-array>
+</resources>

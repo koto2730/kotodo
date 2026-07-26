@@ -1,0 +1,162 @@
+<resources>
+    <string name="nav_header_subtitle">オフラインのTodoリスト</string>
+    <string name="nav_header_desc">ナビゲーションヘッダー</string>
+
+    <!-- ドロワー / 画面 -->
+    <string name="menu_today">当日</string>
+    <string name="menu_all">すべて</string>
+    <string name="menu_completed">完了済み</string>
+    <string name="title_edit_todo">Todoの編集</string>
+
+    <!-- 操作 -->
+    <string name="action_add_todo">Todoを追加</string>
+    <string name="action_filter_sort">フィルタと並べ替え</string>
+    <string name="action_pick_date">日付を選択</string>
+    <string name="action_import_csv">CSVをインポート…</string>
+    <string name="action_export_csv">CSVをエクスポート…</string>
+    <string name="action_save">保存</string>
+    <string name="action_delete">削除</string>
+    <string name="action_undo">元に戻す</string>
+    <string name="action_reset_filters">フィルタを解除</string>
+    <string name="action_previous_day">前の日</string>
+    <string name="action_next_day">次の日</string>
+    <string name="action_clear_date">日付を消す</string>
+    <string name="action_toggle_complete">完了にする</string>
+    <string name="action_import_merge">追加</string>
+    <string name="action_import_replace">全置換</string>
+    <string name="action_clear_completed">すべて削除</string>
+
+    <!-- リスト -->
+    <string name="empty_list">Todoはありません。+ で追加できます。</string>
+    <string name="empty_filtered">条件に一致するTodoがありません。</string>
+    <string name="todo_deleted">Todoを削除しました</string>
+    <string name="repeat_next_created">次回のTodoを %s に作成しました</string>
+
+    <!-- フィルタ / ソート -->
+    <string name="filter_time">日付</string>
+    <string name="filter_priority">プライオリティ</string>
+    <string name="filter_group">グループ</string>
+    <string name="filter_no_group">グループなし</string>
+    <string name="filter_hide_completed">完了を隠す</string>
+    <string name="sort_by">並べ替え</string>
+    <string name="sort_ascending">昇順</string>
+
+    <!-- 編集画面 -->
+    <string name="section_schedule">予定日</string>
+    <string name="section_notification">通知</string>
+    <string name="section_repeat">繰り返し</string>
+    <string name="section_completion">完了</string>
+    <string name="field_title">タイトル</string>
+    <string name="field_description">説明</string>
+    <string name="field_priority">プライオリティ</string>
+    <string name="field_group">グループ</string>
+    <string name="field_start_date">開始予定日</string>
+    <string name="field_due_date">完了予定日</string>
+    <string name="field_notify">通知する</string>
+    <string name="field_notify_time">通知時刻</string>
+    <string name="field_repeat">繰り返す</string>
+    <string name="field_repeat_interval">間隔</string>
+    <string name="field_week_rule">曜日を指定</string>
+    <string name="field_month_rule">日にちを指定</string>
+    <string name="field_year_rule">月を指定</string>
+    <string name="field_repeat_end">繰り返し終了日</string>
+    <string name="field_completed">完了</string>
+    <string name="field_completed_on">完了日: %s</string>
+    <string name="field_not_completed">未完了</string>
+    <string name="date_not_set">未設定</string>
+    <string name="error_title_required">タイトルを入力してください</string>
+    <string name="hint_undated">日付を設定しないTodoは、完了するまで常にリストに表示されます。</string>
+    <string name="hint_notify">通知は上の2つの日付のうち早いほうの日に鳴ります。</string>
+    <string name="hint_repeat">曜日・日にちを選ばない場合は、完了予定日と同じ日で繰り返します。</string>
+
+    <!-- ダイアログ -->
+    <string name="dialog_delete_title">このTodoを削除しますか?</string>
+    <string name="dialog_delete_message">「%s」を削除します。</string>
+    <string name="dialog_clear_completed_title">完了済みのTodoをすべて削除しますか?</string>
+    <string name="dialog_clear_completed_message">完了済みの %d 件を削除します。</string>
+    <string name="dialog_import_title">CSVインポート</string>
+    <string name="dialog_import_message">%1$d 件のTodoが見つかりました (%2$d 行スキップ)。今のリストに追加しますか、それとも全置換しますか?</string>
+
+    <!-- CSV結果 -->
+    <string name="import_failed">ファイルを読み込めませんでした。</string>
+    <string name="import_nothing_found">ファイルにTodoが見つかりませんでした。</string>
+    <string name="export_failed">ファイルを書き込めませんでした。</string>
+    <plurals name="import_done">
+        <item quantity="other">%d 件をインポートしました</item>
+    </plurals>
+    <plurals name="export_done">
+        <item quantity="other">%d 件をエクスポートしました</item>
+    </plurals>
+    <plurals name="completed_cleared">
+        <item quantity="other">%d 件を削除しました</item>
+    </plurals>
+
+    <!-- 繰り返しの表示 -->
+    <string name="repeat_every_day">毎日</string>
+    <string name="repeat_every_n_days">%d日ごと</string>
+    <string name="repeat_every_week">毎週</string>
+    <string name="repeat_every_n_weeks">%d週ごと</string>
+    <string name="repeat_every_month">毎月</string>
+    <string name="repeat_every_n_months">%dか月ごと</string>
+    <string name="repeat_every_year">毎年</string>
+    <string name="repeat_every_n_years">%d年ごと</string>
+    <string name="repeat_detail_suffix"> (%s)</string>
+    <string name="day_of_month">%d日</string>
+    <!-- 年次指定の月と日。日本語は間を空けない: 「7月15日」 -->
+    <string name="repeat_month_day_join">%1$s%2$s</string>
+
+    <!-- リスト行のメタ表示 -->
+    <string name="meta_start">開始 %s</string>
+    <string name="meta_due">期限 %s</string>
+    <string name="meta_notify">通知 %s</string>
+    <string name="meta_completed">完了 %s</string>
+
+    <!-- 通知 -->
+    <string name="notification_channel_name">Todoの通知</string>
+    <string name="notification_channel_description">予定日のTodoをローカル通知でお知らせします</string>
+    <string name="notification_due_on">期限: %s</string>
+    <string name="notification_starts_on">開始: %s</string>
+    <string name="notification_permission_denied">通知するには通知の権限が必要です。</string>
+
+    <string-array name="priority_labels">
+        <item>最高</item>
+        <item>高</item>
+        <item>中</item>
+        <item>低</item>
+        <item>最低</item>
+    </string-array>
+
+    <!-- 並び順は ListOptions.TimeFilter と一致させること -->
+    <string-array name="time_filter_labels">
+        <item>すべて</item>
+        <item>期限切れ</item>
+        <item>当日が期限</item>
+        <item>日付なし</item>
+        <item>これから</item>
+    </string-array>
+
+    <!-- 並び順は ListOptions.SortKey と一致させること -->
+    <string-array name="sort_labels">
+        <item>プライオリティ</item>
+        <item>完了予定日</item>
+        <item>開始予定日</item>
+        <item>タイトル</item>
+        <item>グループ</item>
+        <item>作成順</item>
+    </string-array>
+
+    <!-- 並び順は TodoEditFragment.buildRepeatTypeChips と一致させること -->
+    <string-array name="repeat_type_labels">
+        <item>日次</item>
+        <item>週次</item>
+        <item>月次</item>
+        <item>年次</item>
+    </string-array>
+
+    <string-array name="repeat_interval_units">
+        <item>日ごと</item>
+        <item>週ごと</item>
+        <item>か月ごと</item>
+        <item>年ごと</item>
+    </string-array>
+</resources>

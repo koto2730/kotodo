@@ -1,0 +1,10 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- 鉄紺 gradient behind the drawer header. -->
+    <gradient
+        android:angle="135"
+        android:centerColor="#37474F"
+        android:endColor="#1B2429"
+        android:startColor="#546E7A"
+        android:type="linear" />
+</shape>

@@ -1,0 +1,36 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Kotodo" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- 鉄紺: near-neutral chrome that lets the priority stripes carry the colour. -->
+        <item name="colorPrimary">@color/slate_600</item>
+        <item name="colorPrimaryVariant">@color/slate_800</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- 朱: the single accent, used by the add button, checkboxes and switches. -->
+        <item name="colorSecondary">@color/vermilion_600</item>
+        <item name="colorSecondaryVariant">@color/vermilion_700</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+    </style>
+
+    <style name="Theme.Kotodo.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Kotodo.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.Kotodo.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!-- Small caps-style heading used between form and filter sections. -->
+    <style name="Kotodo.SectionLabel" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceOverline</item>
+        <!-- A dedicated colour, not ?attr/colorPrimary: the primary is a dark
+             slate that would vanish against the dark theme background. -->
+        <item name="android:textColor">@color/section_label</item>
+    </style>
+</resources>

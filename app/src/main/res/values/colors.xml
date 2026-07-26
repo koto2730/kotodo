@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!--
+      Brand palette: 鉄紺 (slate) chrome with a 朱 (vermilion) accent.
+      The chrome is deliberately near-neutral so the priority stripes stay the
+      most colourful thing on screen.
+    -->
+    <color name="slate_900">#FF1B2429</color>
+    <color name="slate_800">#FF263238</color>
+    <color name="slate_600">#FF37474F</color>
+    <color name="slate_400">#FF546E7A</color>
+    <color name="slate_200">#FF90A4AE</color>
+
+    <color name="vermilion_700">#FFC63D14</color>
+    <color name="vermilion_600">#FFE64A19</color>
+    <color name="vermilion_300">#FFFF8A65</color>
+
+    <!-- Section headings in the edit form and the filter sheet. -->
+    <color name="section_label">@color/slate_400</color>
+
+    <!--
+      Priority stripe colours, ordered to match the Priority enum. "High" is amber
+      rather than orange so it never reads as the 朱 accent used by the add button
+      and the checkboxes sitting right beside it.
+    -->
+    <color name="priority_highest">#FFD32F2F</color>
+    <color name="priority_high">#FFF9A825</color>
+    <color name="priority_middle">#FF1976D2</color>
+    <color name="priority_low">#FF689F38</color>
+    <color name="priority_lowest">#FF9E9E9E</color>
+
+    <color name="meta_text">#FF6B7A82</color>
+    <color name="overdue">#FFD32F2F</color>
+
+    <integer-array name="priority_colors">
+        <item>@color/priority_highest</item>
+        <item>@color/priority_high</item>
+        <item>@color/priority_middle</item>
+        <item>@color/priority_low</item>
+        <item>@color/priority_lowest</item>
+    </integer-array>
+</resources>

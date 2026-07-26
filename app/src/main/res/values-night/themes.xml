@@ -1,0 +1,13 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Kotodo" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- The app bar goes darker rather than lighter, so it recedes on dark. -->
+        <item name="colorPrimary">@color/slate_800</item>
+        <item name="colorPrimaryVariant">@color/slate_900</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- A lighter 朱 keeps the accent readable against the dark surface. -->
+        <item name="colorSecondary">@color/vermilion_300</item>
+        <item name="colorSecondaryVariant">@color/vermilion_300</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+    </style>
+</resources>

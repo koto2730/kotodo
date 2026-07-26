@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_filter_sort"
+        android:icon="@drawable/ic_filter"
+        android:title="@string/action_filter_sort"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_pick_date"
+        android:icon="@drawable/ic_calendar"
+        android:title="@string/action_pick_date"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_import_csv"
+        android:title="@string/action_import_csv"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_export_csv"
+        android:title="@string/action_export_csv"
+        app:showAsAction="never" />
+    <!-- Visible only on the 完了済み screen; see TodoListFragment#setUpMenu. -->
+    <item
+        android:id="@+id/action_clear_completed"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/action_clear_completed"
+        app:showAsAction="ifRoom" />
+</menu>
