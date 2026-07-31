@@ -9,5 +9,12 @@
         <item name="colorSecondaryVariant">@color/vermilion_300</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!--
+          Theme.Kotodo is redefined wholesale in this file (Android does not merge
+          the light and night versions of the same style name), so this pointer has
+          to be repeated here even though Theme.Kotodo.AlertDialog itself is only
+          declared once, in values/themes.xml.
+        -->
+        <item name="alertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
     </style>
 </resources>
