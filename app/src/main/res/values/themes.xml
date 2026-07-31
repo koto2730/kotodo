@@ -11,6 +11,23 @@
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Dialog action buttons ("OK", "Delete"...) get the 朱 accent instead of
+             the default colorPrimary - see Theme.Kotodo.AlertDialog below. -->
+        <item name="alertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
+    </style>
+
+    <!--
+      Material's default AlertDialog styling colours the action buttons with
+      colorPrimary. That is our near-neutral 鉄紺 chrome colour, which reads fine
+      on the light theme's white dialog background but nearly disappears against
+      the dark theme's dark dialog surface. Buttons are things you act on, so they
+      get the same 朱 accent as the FAB, checkboxes and switches instead.
+      ?attr/colorSecondary (not a literal colour) so this single style adapts to
+      whichever Theme.Kotodo - light or night - is asking for it.
+    -->
+    <style name="Theme.Kotodo.AlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="colorPrimary">?attr/colorSecondary</item>
+        <item name="colorAccent">?attr/colorSecondary</item>
     </style>
 
     <style name="Theme.Kotodo.NoActionBar">

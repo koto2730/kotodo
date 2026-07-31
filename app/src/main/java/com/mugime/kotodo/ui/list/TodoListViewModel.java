@@ -142,7 +142,12 @@ public class TodoListViewModel extends AndroidViewModel {
      */
     public void setCompleted(@NonNull Todo todo, boolean completed,
                              @Nullable TodoRepository.Callback<Todo> onFollowUp) {
-        repository.setCompleted(todo, completed, currentDate(), onFollowUp);
+        // Deliberately DateUtils.today(), not currentDate(): completing an item is a
+        // real-world action that happens now, regardless of which day the Today
+        // screen's date bar happens to be browsing. Using the browsed date here would
+        // record the wrong 完了日 and, for repeating todos, compute the next occurrence
+        // from the wrong reference date.
+        repository.setCompleted(todo, completed, DateUtils.today(), onFollowUp);
     }
 
     public void delete(@NonNull Todo todo, @Nullable Runnable onDone) {
