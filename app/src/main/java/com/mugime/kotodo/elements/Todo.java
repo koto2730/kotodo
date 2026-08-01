@@ -95,6 +95,15 @@ public class Todo {
     /** 完了フラグ */
     public boolean completed = false;
 
+    /**
+     * Internal bookkeeping, not user-facing: true once this specific todo has ever
+     * spawned its repeat follow-up. A one-way latch - it stays true even after
+     * un-completing, so repeatedly checking and unchecking the same repeating todo
+     * cannot create more than one follow-up. Reset to false on {@link #copyAsNew()}
+     * since the new occurrence hasn't spawned its own follow-up yet.
+     */
+    public boolean followUpCreated = false;
+
     /** Creation timestamp in epoch millis, used as the tie-breaker when sorting. */
     public long createdAt = System.currentTimeMillis();
 
@@ -185,6 +194,7 @@ public class Todo {
         copy.notifyMinuteOfDay = notifyMinuteOfDay;
         copy.completed = completed;
         copy.completedDate = completedDate;
+        copy.followUpCreated = followUpCreated;
         copy.createdAt = createdAt;
         return copy;
     }
@@ -195,6 +205,7 @@ public class Todo {
         copy.id = 0L;
         copy.completed = false;
         copy.completedDate = null;
+        copy.followUpCreated = false;
         copy.createdAt = System.currentTimeMillis();
         return copy;
     }

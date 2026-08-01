@@ -102,6 +102,57 @@ public class TodoTest {
     }
 
     @Test
+    public void copyPreservesTheFollowUpLatch() {
+        Todo original = new Todo("thing", null);
+        original.followUpCreated = true;
+
+        assertTrue(original.copy().followUpCreated);
+    }
+
+    @Test
+    public void copyAsNewResetsTheFollowUpLatch() {
+        Todo original = new Todo("thing", null);
+        original.followUpCreated = true;
+
+        assertFalse(original.copyAsNew().followUpCreated);
+    }
+
+    /**
+     * Reproduces the check/uncheck/re-check cycle from TodoRepository.setCompleted
+     * (not itself unit-testable: it needs Room) to prove the followUpCreated latch
+     * stops a second follow-up from being spawned. Regression test for the bug where
+     * repeatedly toggling a repeating todo's checkbox kept creating more "next" todos.
+     */
+    @Test
+    public void completingTwiceNeverSpawnsASecondFollowUp() {
+        Todo todo = new Todo("standup", null);
+        todo.repeat = true;
+        todo.repeatType = RepeatType.DAILY;
+        todo.dueDate = TODAY;
+
+        Todo edited = todo.copy();
+        edited.completed = true;
+        edited.completedDate = TODAY;
+        Todo firstFollowUp = edited.followUpCreated ? null : RepeatRule.nextOccurrence(edited, TODAY);
+        if (firstFollowUp != null) {
+            edited.followUpCreated = true;
+        }
+        assertEquals(TODAY.plusDays(1), firstFollowUp.dueDate);
+        assertTrue(edited.followUpCreated);
+
+        // Unchecking clears completion but must not reset the latch.
+        edited.completed = false;
+        edited.completedDate = null;
+        assertTrue(edited.followUpCreated);
+
+        // Re-checking must not spawn a second follow-up.
+        edited.completed = true;
+        edited.completedDate = TODAY;
+        Todo secondFollowUp = edited.followUpCreated ? null : RepeatRule.nextOccurrence(edited, TODAY);
+        assertNull(secondFollowUp);
+    }
+
+    @Test
     public void buildingTheNextOccurrenceLeavesTheCompletedTodoAlone() {
         Todo todo = new Todo("standup", null);
         todo.id = 7L;

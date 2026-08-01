@@ -96,6 +96,17 @@ public class TodoListFragment extends Fragment implements TodoAdapter.Listener {
         });
     }
 
+    /**
+     * Jumps the date bar back to today. Called by {@code MainActivity} when the
+     * drawer's "当日" item is (re-)selected, so re-tapping it while browsing another
+     * day snaps back to today instead of leaving the date bar where it was.
+     */
+    public void resetToToday() {
+        if (viewModel != null) {
+            viewModel.resetToToday();
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
