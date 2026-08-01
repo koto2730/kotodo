@@ -51,6 +51,25 @@ public class TodoListViewModel extends AndroidViewModel {
     private ListMode mode = ListMode.TODAY;
     private List<Todo> lastLoaded = Collections.emptyList();
 
+    /**
+     * Set by {@code MainActivity} when the drawer's "当日" item is (re-)selected, so
+     * whichever {@code TodoListViewModel} next configures itself for TODAY mode picks
+     * it up in {@link #setMode} and snaps back to today.
+     *
+     * <p>A plain static flag rather than a direct call on the fragment: with
+     * Navigation Component's {@code restoreState}, coming back to 当日 from another
+     * drawer destination can restore a previously saved fragment/ViewModel instance
+     * on a timing that a caller in {@code MainActivity} cannot reliably observe
+     * synchronously. {@link #setMode} runs unconditionally whenever that instance's
+     * view is (re)created, so checking the flag there is timing-proof.</p>
+     */
+    private static volatile boolean pendingTodayReset = false;
+
+    /** Called by {@code MainActivity} when the user taps 当日 in the drawer. */
+    public static void requestTodayReset() {
+        pendingTodayReset = true;
+    }
+
     public TodoListViewModel(@NonNull Application application) {
         super(application);
         repository = TodoRepository.get(application);
@@ -74,8 +93,12 @@ public class TodoListViewModel extends AndroidViewModel {
         visibleTodos.addSource(options, ignored -> recompute());
     }
 
-    /** Called once by the fragment, from the navigation argument. */
+    /** Called by the fragment every time its view is (re)created, from the navigation argument. */
     public void setMode(@NonNull ListMode mode) {
+        if (mode == ListMode.TODAY && pendingTodayReset) {
+            pendingTodayReset = false;
+            referenceDate.setValue(DateUtils.today());
+        }
         if (query.getValue() != null && this.mode == mode) {
             return;
         }
