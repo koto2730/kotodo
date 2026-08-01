@@ -5,6 +5,7 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -13,6 +14,8 @@ import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.navigation.NavigationView;
 import com.mugime.kotodo.databinding.ActivityMainBinding;
 import com.mugime.kotodo.ui.edit.TodoEditFragment;
+import com.mugime.kotodo.ui.list.TodoListFragment;
+import com.mugime.kotodo.ui.list.TodoListViewModel;
 
 import java.util.Objects;
 
@@ -45,7 +48,31 @@ public class MainActivity extends AppCompatActivity {
 
         NavController navController = navController();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        // Sets up the standard "navigate + close drawer" behavior and keeps the
+        // checked drawer item in sync with the current destination (including on
+        // back-press). Overridden immediately below only to special-case 当日.
         NavigationUI.setupWithNavController(navigationView, navController);
+        navigationView.setNavigationItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_today) {
+                // NavigationUI's default listener leaves the Today screen's date bar
+                // wherever the user last navigated it to. Two complementary fixes:
+                // the static flag is timing-proof for navigating back from another
+                // drawer destination (Navigation Component's restoreState can bring
+                // back a previously saved fragment/ViewModel on a timing this
+                // listener can't reliably observe), while the direct lookup below
+                // covers re-selecting 当日 while already on it, where
+                // launchSingleTop means no navigation - and so no ViewModel
+                // lifecycle callback - happens at all.
+                TodoListViewModel.requestTodayReset();
+            }
+            boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
+            if (handled && item.getItemId() == R.id.nav_today) {
+                getSupportFragmentManager().executePendingTransactions();
+                resetTodayScreenIfShown();
+            }
+            drawer.closeDrawers();
+            return handled;
+        });
 
         binding.appBarMain.fab.setOnClickListener(view -> {
             Bundle args = new Bundle();
@@ -77,5 +104,17 @@ public class MainActivity extends AppCompatActivity {
         NavHostFragment host = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_content_main);
         return Objects.requireNonNull(host, "NavHostFragment is missing").getNavController();
+    }
+
+    private void resetTodayScreenIfShown() {
+        NavHostFragment host = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment_content_main);
+        if (host == null) {
+            return;
+        }
+        Fragment current = host.getChildFragmentManager().getPrimaryNavigationFragment();
+        if (current instanceof TodoListFragment) {
+            ((TodoListFragment) current).resetToToday();
+        }
     }
 }

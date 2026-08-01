@@ -141,10 +141,12 @@ public class TodoRepository {
      * Toggles 完了フラグ.
      *
      * <p>Completing sets 完了日 to the given day and, when the item repeats, inserts
-     * the next occurrence in the same transaction-ish step. Un-completing only clears
-     * the two completion fields: an already generated follow-up is left alone, since
-     * deleting a todo the user may have started editing would be worse than a
-     * duplicate they can remove.</p>
+     * the next occurrence - but only the first time this todo is completed.
+     * {@link Todo#followUpCreated} is a one-way latch: un-completing only clears the
+     * two completion fields and leaves the already generated follow-up alone (deleting
+     * a todo the user may have started editing would be worse than a duplicate they
+     * can remove), and re-completing the same todo afterward will not spawn a second
+     * follow-up.</p>
      *
      * @param callback receives the newly created follow-up todo, or {@code null}.
      */
@@ -157,16 +159,17 @@ public class TodoRepository {
             Todo edited = todo.copy();
             edited.completed = completed;
             edited.completedDate = completed ? day : null;
-            dao.update(edited);
 
-            if (completed) {
+            if (completed && !edited.followUpCreated) {
                 Todo next = RepeatRule.nextOccurrence(edited, day);
                 if (next != null) {
                     long id = dao.insert(next);
                     next.id = id;
                     followUp = next;
+                    edited.followUpCreated = true;
                 }
             }
+            dao.update(edited);
             afterWrite();
 
             Todo result = followUp;
