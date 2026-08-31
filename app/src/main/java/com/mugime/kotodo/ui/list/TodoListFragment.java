@@ -93,6 +93,10 @@ public class TodoListFragment extends Fragment implements TodoAdapter.Listener {
         viewModel.getReferenceDate().observe(getViewLifecycleOwner(), date -> {
             binding.dateLabel.setText(DateUtils.formatDisplay(date));
             adapter.setReferenceDate(date);
+            // Completing a todo only makes sense while looking at the real today: the
+            // 当日 screen's date bar is for reviewing other days, not for acting on
+            // them. すべて/完了済み have no date bar and stay editable regardless.
+            adapter.setCompletionEditable(mode != ListMode.TODAY || DateUtils.today().equals(date));
         });
     }
 

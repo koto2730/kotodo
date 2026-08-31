@@ -36,6 +36,7 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
 
     private final Listener listener;
     private LocalDate referenceDate = DateUtils.today();
+    private boolean completionEditable = true;
 
     public TodoAdapter(@NonNull Listener listener) {
         super(DIFF);
@@ -47,6 +48,20 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
     public void setReferenceDate(@NonNull LocalDate date) {
         if (!date.equals(referenceDate)) {
             referenceDate = date;
+            notifyItemRangeChanged(0, getItemCount());
+        }
+    }
+
+    /**
+     * Whether the checkbox may be toggled at all. Off when the 当日 screen is
+     * browsing a day other than the real device today: completing or un-completing
+     * a todo is a real-world action that should not depend on which day happens to
+     * be on screen, and letting it happen while casually reviewing another day was
+     * an easy way to flip a todo's state by accident.
+     */
+    public void setCompletionEditable(boolean editable) {
+        if (completionEditable != editable) {
+            completionEditable = editable;
             notifyItemRangeChanged(0, getItemCount());
         }
     }
@@ -66,7 +81,7 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull TodoViewHolder holder, int position) {
-        holder.bind(getItem(position), referenceDate, listener);
+        holder.bind(getItem(position), referenceDate, completionEditable, listener);
     }
 
     static class TodoViewHolder extends RecyclerView.ViewHolder {
@@ -78,7 +93,7 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
             this.binding = binding;
         }
 
-        void bind(Todo todo, LocalDate referenceDate, Listener listener) {
+        void bind(Todo todo, LocalDate referenceDate, boolean completionEditable, Listener listener) {
             Context context = binding.getRoot().getContext();
 
             binding.todoTitle.setText(todo.title);
@@ -105,8 +120,11 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
             // Detach the listener before setChecked so recycling cannot fire a toggle.
             binding.todoCheck.setOnCheckedChangeListener(null);
             binding.todoCheck.setChecked(todo.completed);
-            binding.todoCheck.setOnCheckedChangeListener(
-                    (button, checked) -> listener.onToggleCompleted(todo, checked));
+            binding.todoCheck.setEnabled(completionEditable);
+            if (completionEditable) {
+                binding.todoCheck.setOnCheckedChangeListener(
+                        (button, checked) -> listener.onToggleCompleted(todo, checked));
+            }
 
             binding.getRoot().setOnClickListener(view -> listener.onOpen(todo));
             binding.getRoot().setOnLongClickListener(view -> {
