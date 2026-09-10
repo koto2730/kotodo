@@ -104,6 +104,14 @@ public class Todo {
      */
     public boolean followUpCreated = false;
 
+    /**
+     * The ID of the parent todo that spawned this occurrence, or {@code null}
+     * if created directly by the user. Used to reset the parent's
+     * {@link #followUpCreated} latch when this follow-up is deleted.
+     */
+    @Nullable
+    public Long parentTodoId = null;
+
     /** Creation timestamp in epoch millis, used as the tie-breaker when sorting. */
     public long createdAt = System.currentTimeMillis();
 
@@ -195,6 +203,7 @@ public class Todo {
         copy.completed = completed;
         copy.completedDate = completedDate;
         copy.followUpCreated = followUpCreated;
+        copy.parentTodoId = parentTodoId;
         copy.createdAt = createdAt;
         return copy;
     }
@@ -206,6 +215,7 @@ public class Todo {
         copy.completed = false;
         copy.completedDate = null;
         copy.followUpCreated = false;
+        copy.parentTodoId = null;
         copy.createdAt = System.currentTimeMillis();
         return copy;
     }

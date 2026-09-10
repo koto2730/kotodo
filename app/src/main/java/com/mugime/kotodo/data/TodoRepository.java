@@ -114,6 +114,13 @@ public class TodoRepository {
 
     public void delete(@NonNull Todo todo, @Nullable Runnable callback) {
         io.execute(() -> {
+            if (todo.parentTodoId != null) {
+                Todo parent = dao.findById(todo.parentTodoId);
+                if (parent != null) {
+                    parent.followUpCreated = false;
+                    dao.update(parent);
+                }
+            }
             dao.delete(todo);
             afterWrite();
             postIfNeeded(callback);
@@ -123,15 +130,48 @@ public class TodoRepository {
     /** Bulk delete backing the completed screen's "clear all" action. */
     public void deleteAll(@NonNull List<Todo> todos, @Nullable Runnable callback) {
         io.execute(() -> {
+            for (Todo todo : todos) {
+                if (todo.parentTodoId != null) {
+                    Todo parent = dao.findById(todo.parentTodoId);
+                    if (parent != null) {
+                        parent.followUpCreated = false;
+                        dao.update(parent);
+                    }
+                }
+            }
             dao.delete(todos);
             afterWrite();
             postIfNeeded(callback);
         });
     }
 
+    /** Re-inserts a previously deleted todo, restoring parent's followUpCreated latch if applicable. */
+    public void restore(@NonNull Todo todo) {
+        io.execute(() -> {
+            if (todo.parentTodoId != null) {
+                Todo parent = dao.findById(todo.parentTodoId);
+                if (parent != null) {
+                    parent.followUpCreated = true;
+                    dao.update(parent);
+                }
+            }
+            dao.insert(todo);
+            afterWrite();
+        });
+    }
+
     /** Re-inserts previously deleted todos, keeping their identity so undo is a true restore. */
     public void restoreAll(@NonNull List<Todo> todos) {
         io.execute(() -> {
+            for (Todo todo : todos) {
+                if (todo.parentTodoId != null) {
+                    Todo parent = dao.findById(todo.parentTodoId);
+                    if (parent != null) {
+                        parent.followUpCreated = true;
+                        dao.update(parent);
+                    }
+                }
+            }
             dao.insertAll(todos);
             afterWrite();
         });
@@ -163,6 +203,7 @@ public class TodoRepository {
             if (completed && !edited.followUpCreated) {
                 Todo next = RepeatRule.nextOccurrence(edited, day);
                 if (next != null) {
+                    next.parentTodoId = edited.id;
                     long id = dao.insert(next);
                     next.id = id;
                     followUp = next;

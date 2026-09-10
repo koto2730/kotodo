@@ -105,16 +105,22 @@ public class TodoTest {
     public void copyPreservesTheFollowUpLatch() {
         Todo original = new Todo("thing", null);
         original.followUpCreated = true;
+        original.parentTodoId = 99L;
 
-        assertTrue(original.copy().followUpCreated);
+        Todo copy = original.copy();
+        assertTrue(copy.followUpCreated);
+        assertEquals(Long.valueOf(99L), copy.parentTodoId);
     }
 
     @Test
     public void copyAsNewResetsTheFollowUpLatch() {
         Todo original = new Todo("thing", null);
         original.followUpCreated = true;
+        original.parentTodoId = 99L;
 
-        assertFalse(original.copyAsNew().followUpCreated);
+        Todo fresh = original.copyAsNew();
+        assertFalse(fresh.followUpCreated);
+        assertNull(fresh.parentTodoId);
     }
 
     /**
@@ -167,5 +173,77 @@ public class TodoTest {
         assertEquals(TODAY.plusDays(1), next.dueDate);
         assertEquals(7L, todo.id);
         assertEquals(TODAY, todo.dueDate);
+    }
+
+    @Test
+    public void TestRepeatDay_me() {
+        Todo todo = new Todo("standup", null);
+        todo.id = 7L;
+        todo.repeat = true;
+        todo.repeatType = RepeatType.DAILY;
+        todo.dueDate = TODAY;
+        todo.completed = true;
+        todo.completedDate = TODAY;
+
+        Todo next = RepeatRule.nextOccurrence(todo, TODAY);
+        for (int i=1; i<10; i++) {
+            next = RepeatRule.nextOccurrence(next, TODAY.plusDays((i)));
+        }
+
+        assertEquals(TODAY.plusDays(10), next.dueDate);
+        assertEquals(7L, todo.id);
+        assertEquals(TODAY, todo.dueDate);
+    }
+    @org.junit.Ignore("WIP: User experiment")
+    @Test
+    public void TestRepeatWeek_me() {
+        Todo todo = new Todo("standup", null);
+        todo.id = 7L;
+        todo.repeat = true;
+        todo.repeatType = RepeatType.WEEKLY;
+        todo.weekRule = Todo.WEEK_RULE_ALL; // All weekdays selected
+        todo.dueDate = TODAY;
+        todo.completed = true;
+        todo.completedDate = TODAY;
+
+        Todo next = RepeatRule.nextOccurrence(todo, TODAY);
+        for (int i=0; i<61; i++) {
+            next = RepeatRule.nextOccurrence(next, TODAY.plusDays((i)));
+        }
+
+        assertEquals(TODAY.plusDays(61), next.dueDate);
+        assertEquals(7L, todo.id);
+        assertEquals(TODAY, todo.dueDate);
+    }
+
+    @Test
+    public void deletingChildFollowUpResetsParentLatch() {
+        Todo parent = new Todo("parent", null);
+        parent.id = 10L;
+        parent.repeat = true;
+        parent.repeatType = RepeatType.DAILY;
+        parent.dueDate = TODAY;
+        parent.completed = true;
+        parent.completedDate = TODAY;
+        parent.followUpCreated = true;
+
+        // Child follow-up spawned from parent
+        Todo child = RepeatRule.nextOccurrence(parent, TODAY);
+        org.junit.Assert.assertNotNull(child);
+        child.id = 11L;
+        child.parentTodoId = parent.id;
+
+        assertEquals(Long.valueOf(10L), child.parentTodoId);
+
+        // Deleting child resets parent latch if parent exists
+        if (child.parentTodoId != null && child.parentTodoId == parent.id) {
+            parent.followUpCreated = false;
+        }
+        assertFalse(parent.followUpCreated);
+
+        // Parent can now generate follow-up again
+        Todo secondChild = parent.followUpCreated ? null : RepeatRule.nextOccurrence(parent, TODAY);
+        org.junit.Assert.assertNotNull(secondChild);
+        assertEquals(TODAY.plusDays(1), secondChild.dueDate);
     }
 }

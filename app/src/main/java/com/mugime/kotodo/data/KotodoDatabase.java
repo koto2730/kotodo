@@ -16,7 +16,7 @@ import com.mugime.kotodo.elements.Todo;
  * The on-device SQLite database. There is no server and no sync: this file under
  * {@code /data/data/com.mugime.kotodo/databases/} is the single source of truth.
  */
-@Database(entities = {Todo.class}, version = 2, exportSchema = false)
+@Database(entities = {Todo.class}, version = 3, exportSchema = false)
 @TypeConverters({Converters.class})
 public abstract class KotodoDatabase extends RoomDatabase {
 
@@ -32,6 +32,14 @@ public abstract class KotodoDatabase extends RoomDatabase {
         }
     };
 
+    /** Adds {@link Todo#parentTodoId}, linking repeat follow-ups to their parent. */
+    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE todos ADD COLUMN parentTodoId INTEGER DEFAULT NULL");
+        }
+    };
+
     public abstract TodoDao todoDao();
 
     public static KotodoDatabase getInstance(Context context) {
@@ -42,7 +50,7 @@ public abstract class KotodoDatabase extends RoomDatabase {
                                     context.getApplicationContext(),
                                     KotodoDatabase.class,
                                     DB_NAME)
-                            .addMigrations(MIGRATION_1_2)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                             .build();
                 }
             }

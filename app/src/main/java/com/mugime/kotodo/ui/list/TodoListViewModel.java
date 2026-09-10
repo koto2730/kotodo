@@ -179,7 +179,7 @@ public class TodoListViewModel extends AndroidViewModel {
 
     /** Re-inserts a deleted todo, keeping its identity so undo is a true restore. */
     public void restore(@NonNull Todo todo) {
-        repository.insert(todo, null);
+        repository.restore(todo);
     }
 
     /** Deletes every todo currently passed in, e.g. all completed items on screen. */
