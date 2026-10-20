@@ -18,7 +18,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      # The runner image already ships the SDK; the action's default `tools`
+      # package no longer exists in current cmdline-tools, so install nothing extra.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -33,6 +37,10 @@ jobs:
 
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --stacktrace
+
+      # Catches bundle-only problems (resource config, splits) before a tag does.
+      - name: Assemble debug AAB
+        run: ./gradlew bundleDebug --stacktrace
 
       - name: Upload test results
         if: always()

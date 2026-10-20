@@ -1,7 +1,8 @@
 name: Release
 
-# Pushing a tag like v1.0.0 builds a signed release APK and attaches it to a
-# new GitHub Release. Requires four repository secrets, set once under
+# Pushing a tag like v1.0.0 builds a signed release APK and AAB. The APK is
+# attached to a draft GitHub Release; the AAB (what Google Play takes) is
+# attached too and also kept as a workflow artifact. Requires four repository secrets, set once under
 # Settings > Secrets and variables > Actions (see README > Release process):
 #   KEYSTORE_BASE64    base64 of the .jks/.keystore file
 #   KEYSTORE_PASSWORD
@@ -26,7 +27,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      # The runner image already ships the SDK; the action's default `tools`
+      # package no longer exists in current cmdline-tools, so install nothing extra.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -39,20 +44,33 @@ jobs:
       - name: Decode signing keystore
         run: base64 -d <<< "${{ secrets.KEYSTORE_BASE64 }}" > "${{ runner.temp }}/release.keystore"
 
-      - name: Build signed release APK
+      - name: Build signed release APK and AAB
         env:
           KOTODO_STORE_FILE: ${{ runner.temp }}/release.keystore
           KOTODO_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KOTODO_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KOTODO_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease bundleRelease --stacktrace
 
-      - name: Name the APK after the tag
-        run: cp app/build/outputs/apk/release/app-release.apk "kotodo-${{ github.ref_name }}.apk"
+      - name: Name the APK and AAB after the tag
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk "kotodo-${{ github.ref_name }}.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "kotodo-${{ github.ref_name }}.aab"
+
+      - name: Verify the AAB is signed
+        run: jarsigner -verify "kotodo-${{ github.ref_name }}.aab"
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kotodo-aab
+          path: kotodo-${{ github.ref_name }}.aab
 
       - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v2
         with:
-          files: kotodo-${{ github.ref_name }}.apk
+          files: |
+            kotodo-${{ github.ref_name }}.apk
+            kotodo-${{ github.ref_name }}.aab
           generate_release_notes: true
           draft: true

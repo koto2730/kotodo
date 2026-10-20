@@ -98,12 +98,15 @@ Run the unit tests (repeat-rule arithmetic and CSV round trips):
 Every push to `main` and every PR runs unit tests, lint, and a debug build via
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml). It needs no secrets.
 
-Pushing a tag like `v1.0.0` builds a **signed** release APK and attaches it to a
-**draft** [GitHub Release](../../releases), via
-[`.github/workflows/release.yml`](.github/workflows/release.yml) — that's the
-supported way to distribute the app; there is no Play Store listing. The release
-is a draft on purpose: nothing is visible to anyone until you open it on the
-Releases page, check the attached APK, and click **Publish release**.
+Pushing a tag like `v0.0.4` builds a **signed** release APK and a **signed AAB**
+(Android App Bundle) via [`.github/workflows/release.yml`](.github/workflows/release.yml),
+attaches both to a **draft** [GitHub Release](../../releases), and keeps the AAB as a
+workflow artifact (`kotodo-aab`). The release is a draft on purpose: nothing is visible
+to anyone until you open it on the Releases page, check the attached files, and click
+**Publish release**. The APK is for direct installs; the AAB is what Google Play takes.
+
+CI also runs `bundleDebug`, so bundle-only build problems surface on PRs rather than at
+release time.
 
 ### Building a signed release locally / ローカルでの署名ビルド
 
@@ -116,8 +119,9 @@ cp keystore.properties.example keystore.properties
 ./gradlew assembleRelease
 ```
 
-Without `keystore.properties`, `assembleRelease` still runs but produces an
-**unsigned** APK — fine for checking the build, not for distributing.
+Without `keystore.properties`, `assembleRelease` / `bundleRelease` still run but
+produce an **unsigned** APK / AAB — fine for checking the build, not for distributing.
+For a local signed AAB: `./gradlew bundleRelease` → `app/build/outputs/bundle/release/app-release.aab`.
 
 ### One-time setup: signing secrets for CI / CIの署名シークレット設定(初回のみ)
 
@@ -140,15 +144,31 @@ base64 -w0 /path/to/your/release.keystore | gh secret set KEYSTORE_BASE64
 ### Cutting a release / リリースの切り方
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v0.0.4
+git push origin v0.0.4
 ```
 
-That triggers the release workflow; a **draft** release with the signed APK shows
+That triggers the release workflow; a **draft** release with the signed APK and AAB shows
 up on the [Releases](../../releases) page a few minutes later — review it and
 click **Publish release** when you're ready for it to go public. Bump
 `versionCode` and `versionName` in [`app/build.gradle.kts`](app/build.gradle.kts)
-before tagging.
+before tagging. `versionCode` must increase with every upload to Google Play.
+
+### Publishing to Google Play / Google Playへの公開
+
+1. In Play Console, create the app (package name `com.mugime.kotodo`) and enrol in
+   **Play App Signing**. The keystore in the CI secrets above acts as the **upload key**;
+   Google holds the actual app-signing key.
+2. Upload the `kotodo-vX.Y.Z.aab` from the GitHub Release (or the workflow artifact) to
+   a testing track first. Personal developer accounts created after Nov 2023 must run a
+   closed test with at least 12 testers for 14 days before applying for production.
+3. Fill in the store listing from [`store/`](store/): texts and graphics are described in
+   [`store/README.md`](store/README.md).
+4. Complete **App content**: Privacy policy URL (publish
+   [`store/privacy-policy.md`](store/privacy-policy.md), e.g. via its GitHub URL), Data
+   safety (no data collected or shared), Ads (none), Target audience, and the
+   notification permission note. Kotodo no longer declares `SCHEDULE_EXACT_ALARM`, so no
+   exact-alarm declaration is needed; reminders may fire up to ~10 minutes late.
 
 ## Data model / データモデル
 

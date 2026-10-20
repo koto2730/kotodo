@@ -1,0 +1,19 @@
+Kotodo is a todo app that cannot go online. It does not declare the INTERNET permission, so it is technically incapable of sending your data anywhere. Everything lives in a single SQLite file on your device.
+
+TODAY'S LIST
+Open the app and see what matters today: every todo whose start date or due date has arrived, plus anything with no dates at all. Forget to finish something and it simply keeps showing up. Step through other days, or jump to a date, to review what was or will be scheduled.
+
+FEATURES
+• Filter and sort by priority, group, and date state (overdue, due today, undated, upcoming)
+• Five priority levels with colour stripes you can read at a glance
+• Tick a todo off and the title gets a strike-through line
+• Repeating todos: daily, weekly, monthly or yearly, with an interval, weekday / day-of-month / month selection and an end date
+• Optional local reminders at a time you choose, delivered by the system alarm service - no push service involved
+• Import and export as CSV through the system file picker (Markdown checklist prefixes are understood)
+• Light and dark themes
+• English and Japanese, following your device language
+
+PRIVACY
+No account. No ads. No analytics. No network access. Your todos never leave your phone.
+
+Kotodo is open source under the MIT license.
