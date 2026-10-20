@@ -34,6 +34,10 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --stacktrace
 
+      # Catches bundle-only problems (resource config, splits) before a tag does.
+      - name: Assemble debug AAB
+        run: ./gradlew bundleDebug --stacktrace
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
