@@ -18,7 +18,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      # The runner image already ships the SDK; the action's default `tools`
+      # package no longer exists in current cmdline-tools, so install nothing extra.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ""
 
       - uses: gradle/actions/setup-gradle@v4
 
