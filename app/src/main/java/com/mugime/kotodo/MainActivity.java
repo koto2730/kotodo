@@ -3,6 +3,8 @@ package com.mugime.kotodo;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -13,10 +15,13 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 import com.mugime.kotodo.databinding.ActivityMainBinding;
+import com.mugime.kotodo.elements.Priority;
 import com.mugime.kotodo.ui.edit.TodoEditFragment;
+import com.mugime.kotodo.ui.list.QuickAddSheet;
 import com.mugime.kotodo.ui.list.TodoListFragment;
 import com.mugime.kotodo.ui.list.TodoListViewModel;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 /**
@@ -26,6 +31,8 @@ import java.util.Objects;
  * {@code MenuProvider}; the activity only owns the drawer and the add button.</p>
  */
 public class MainActivity extends AppCompatActivity {
+
+    private static final String QUICK_ADD_TAG = "quick_add";
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
@@ -74,16 +81,31 @@ public class MainActivity extends AppCompatActivity {
             return handled;
         });
 
+        // The add button opens the quick-add sheet; "Details" there continues in the full editor.
         binding.appBarMain.fab.setOnClickListener(view -> {
-            Bundle args = new Bundle();
-            args.putLong(TodoEditFragment.ARG_TODO_ID, 0L);
-            navController().navigate(R.id.nav_edit, args);
+            if (getSupportFragmentManager().findFragmentByTag(QUICK_ADD_TAG) == null) {
+                new QuickAddSheet().show(getSupportFragmentManager(), QUICK_ADD_TAG);
+            }
         });
 
         // The add button belongs to the list screens only.
         navController.addOnDestinationChangedListener((controller, destination, arguments) ->
                 binding.appBarMain.fab.setVisibility(
                         destination.getId() == R.id.nav_edit ? View.GONE : View.VISIBLE));
+    }
+
+    /**
+     * Opens the full editor for a new todo, pre-filled with what the quick-add
+     * sheet already collected.
+     */
+    public void openEditor(@NonNull String title, @Nullable LocalDate due, @NonNull Priority priority) {
+        Bundle args = new Bundle();
+        args.putLong(TodoEditFragment.ARG_TODO_ID, 0L);
+        args.putString(TodoEditFragment.ARG_PREFILL_TITLE, title);
+        args.putLong(TodoEditFragment.ARG_PREFILL_DUE_DAY,
+                due == null ? TodoEditFragment.NO_DUE_DAY : due.toEpochDay());
+        args.putInt(TodoEditFragment.ARG_PREFILL_PRIORITY, priority.ordinal());
+        navController().navigate(R.id.nav_edit, args);
     }
 
     @Override

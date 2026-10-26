@@ -159,4 +159,21 @@
         <item>か月ごと</item>
         <item>年ごと</item>
     </string-array>
+
+    <!-- 折りたたみセクション / クイック追加 -->
+    <string name="summary_no_dates">日付なし</string>
+    <string name="summary_off">オフ</string>
+    <string name="summary_none">なし</string>
+    <string name="repeat_none">なし</string>
+    <string name="shortcut_today">今日</string>
+    <string name="shortcut_tomorrow">明日</string>
+    <string name="shortcut_next_week">来週</string>
+    <string name="shortcut_no_date">日付なし</string>
+    <string name="action_repeat_customize">細かく設定…</string>
+    <string name="action_repeat_customize_hide">詳細を閉じる</string>
+    <string name="action_expand_section">このセクションを開閉</string>
+    <string name="quick_add_hint">何をしますか？</string>
+    <string name="quick_add_details">詳細…</string>
+    <string name="quick_add_submit">追加</string>
+    <string name="quick_add_added">追加しました</string>
 </resources>
