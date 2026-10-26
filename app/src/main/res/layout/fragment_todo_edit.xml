@@ -103,7 +103,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_start_date"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.Kotodo.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="2026/07/25" />
@@ -133,7 +133,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_due_date"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.Kotodo.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="2026/07/25" />
@@ -196,7 +196,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_notify_time"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.Kotodo.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="09:00" />
@@ -250,7 +250,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_repeat_custom"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.Kotodo.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/action_repeat_customize" />
@@ -367,7 +367,7 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_repeat_end"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.Kotodo.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             tools:text="未設定" />

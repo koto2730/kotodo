@@ -30,6 +30,25 @@
         <item name="colorAccent">?attr/colorSecondary</item>
     </style>
 
+    <!--
+      Buttons. The stock Material styles colour text buttons with colorPrimary, which is
+      the near-neutral 鉄紺 chrome colour - fine on white, but on the dark theme it is
+      almost the surface colour and the caption disappears. These two styles read their
+      colours from theme attributes, so one definition serves both light and night.
+      Text buttons use the plain on-surface colour; the one primary action per screen
+      uses the 朱 accent.
+    -->
+    <style name="Widget.Kotodo.Button.Text" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="rippleColor">?attr/colorOnSurface</item>
+        <item name="iconTint">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.Kotodo.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">?attr/colorSecondary</item>
+        <item name="android:textColor">?attr/colorOnSecondary</item>
+    </style>
+
     <style name="Theme.Kotodo.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

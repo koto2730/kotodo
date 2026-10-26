@@ -63,7 +63,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_quick_details"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.Kotodo.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/quick_add_details" />
@@ -75,7 +75,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_quick_add"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.Kotodo.Button.Primary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/quick_add_submit" />
