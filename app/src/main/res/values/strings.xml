@@ -164,4 +164,21 @@
         <item>month(s)</item>
         <item>year(s)</item>
     </string-array>
+
+    <!-- Collapsible edit sections / quick add -->
+    <string name="summary_no_dates">No dates</string>
+    <string name="summary_off">Off</string>
+    <string name="summary_none">None</string>
+    <string name="repeat_none">None</string>
+    <string name="shortcut_today">Today</string>
+    <string name="shortcut_tomorrow">Tomorrow</string>
+    <string name="shortcut_next_week">Next week</string>
+    <string name="shortcut_no_date">No date</string>
+    <string name="action_repeat_customize">Customize…</string>
+    <string name="action_repeat_customize_hide">Hide details</string>
+    <string name="action_expand_section">Show or hide this section</string>
+    <string name="quick_add_hint">What needs doing?</string>
+    <string name="quick_add_details">Details…</string>
+    <string name="quick_add_submit">Add</string>
+    <string name="quick_add_added">Added</string>
 </resources>

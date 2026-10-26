@@ -36,6 +36,7 @@ import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 import com.mugime.kotodo.R;
 import com.mugime.kotodo.databinding.FragmentTodoEditBinding;
+import com.mugime.kotodo.databinding.ViewSectionHeaderBinding;
 import com.mugime.kotodo.elements.Priority;
 import com.mugime.kotodo.elements.RepeatType;
 import com.mugime.kotodo.elements.Todo;
@@ -49,6 +50,7 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -62,6 +64,18 @@ import java.util.Locale;
 public class TodoEditFragment extends Fragment {
 
     public static final String ARG_TODO_ID = "todoId";
+
+    /** Values the quick-add sheet hands over when the user continues in the full editor. */
+    public static final String ARG_PREFILL_TITLE = "prefillTitle";
+    public static final String ARG_PREFILL_DUE_DAY = "prefillDueDay";
+    public static final String ARG_PREFILL_PRIORITY = "prefillPriority";
+    /** Value of {@link #ARG_PREFILL_DUE_DAY} meaning "no due date". */
+    public static final long NO_DUE_DAY = Long.MIN_VALUE;
+
+    private static final String SECTION_SCHEDULE = "schedule";
+    private static final String SECTION_NOTIFY = "notify";
+    private static final String SECTION_REPEAT = "repeat";
+    private static final String SECTION_REPEAT_CUSTOM = "repeat_custom";
 
     private FragmentTodoEditBinding binding;
     private TodoEditViewModel viewModel;
@@ -90,16 +104,18 @@ public class TodoEditFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(TodoEditViewModel.class);
 
         buildPriorityChips();
+        buildDueShortcuts();
         buildRepeatTypeChips();
         buildWeekChips();
         buildMonthDayChips();
         buildMonthChips();
         wireControls();
+        setUpSections();
         setUpMenu();
 
         Bundle args = getArguments();
         long id = args == null ? 0L : args.getLong(ARG_TODO_ID, 0L);
-        viewModel.load(id);
+        viewModel.load(id, args);
         viewModel.getTodo().observe(getViewLifecycleOwner(), this::bind);
         viewModel.getGroups().observe(getViewLifecycleOwner(), this::bindGroupSuggestions);
     }
@@ -149,16 +165,14 @@ public class TodoEditFragment extends Fragment {
 
         binding.switchNotify.setOnCheckedChangeListener((button, checked) -> {
             binding.buttonNotifyTime.setEnabled(checked);
+            refreshSummaries();
             if (checked) {
                 ensureNotificationPermission();
             }
         });
 
-        binding.switchRepeat.setOnCheckedChangeListener((button, checked) -> {
-            binding.repeatSection.setVisibility(checked ? View.VISIBLE : View.GONE);
-            if (checked && selectedRepeatType() == RepeatType.NONE) {
-                selectRepeatType(RepeatType.DAILY);
-            }
+        binding.buttonRepeatCustom.setOnClickListener(v -> {
+            toggleSection(SECTION_REPEAT_CUSTOM);
             refreshRepeatSections();
         });
 
@@ -213,6 +227,86 @@ public class TodoEditFragment extends Fragment {
         }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     }
 
+    // --------------------------------------------------------------- sections
+
+    private void setUpSections() {
+        setUpSection(binding.headerSchedule, SECTION_SCHEDULE, R.string.section_schedule);
+        setUpSection(binding.headerNotify, SECTION_NOTIFY, R.string.section_notification);
+        setUpSection(binding.headerRepeat, SECTION_REPEAT, R.string.section_repeat);
+        applySectionStates();
+    }
+
+    private void setUpSection(ViewSectionHeaderBinding header, String key, int titleRes) {
+        header.sectionTitle.setText(titleRes);
+        header.getRoot().setOnClickListener(v -> {
+            toggleSection(key);
+            applySectionStates();
+        });
+    }
+
+    private boolean isExpanded(String key) {
+        return viewModel.expandedSections().contains(key);
+    }
+
+    private void toggleSection(String key) {
+        if (!viewModel.expandedSections().remove(key)) {
+            viewModel.expandedSections().add(key);
+        }
+    }
+
+    private void applySectionStates() {
+        applySectionState(binding.headerSchedule, binding.bodySchedule, SECTION_SCHEDULE);
+        applySectionState(binding.headerNotify, binding.bodyNotify, SECTION_NOTIFY);
+        applySectionState(binding.headerRepeat, binding.bodyRepeat, SECTION_REPEAT);
+    }
+
+    private void applySectionState(ViewSectionHeaderBinding header, View body, String key) {
+        boolean expanded = isExpanded(key);
+        body.setVisibility(expanded ? View.VISIBLE : View.GONE);
+        header.sectionChevron.setRotation(expanded ? 180f : 0f);
+    }
+
+    /** One-line values shown on the collapsed section headers. */
+    private void refreshSummaries() {
+        if (binding == null || working == null) {
+            return;
+        }
+        List<String> dates = new ArrayList<>(2);
+        if (working.startDate != null) {
+            dates.add(getString(R.string.meta_start, DateUtils.formatShort(working.startDate)));
+        }
+        if (working.dueDate != null) {
+            dates.add(getString(R.string.meta_due, DateUtils.formatShort(working.dueDate)));
+        }
+        binding.headerSchedule.sectionSummary.setText(dates.isEmpty()
+                ? getString(R.string.summary_no_dates) : TextUtils.join(" \u00b7 ", dates));
+
+        binding.headerNotify.sectionSummary.setText(binding.switchNotify.isChecked()
+                ? DateUtils.formatTime(working.notifyMinuteOfDay) : getString(R.string.summary_off));
+
+        binding.headerRepeat.sectionSummary.setText(selectedRepeatType() == RepeatType.NONE
+                ? getString(R.string.summary_none) : previewText());
+    }
+
+    /** Today / Tomorrow / Next week one-tap choices under the due date. */
+    private void buildDueShortcuts() {
+        binding.chipsDueShortcuts.removeAllViews();
+        addDueShortcut(R.string.shortcut_today, 0);
+        addDueShortcut(R.string.shortcut_tomorrow, 1);
+        addDueShortcut(R.string.shortcut_next_week, 7);
+    }
+
+    private void addDueShortcut(int labelRes, int daysFromToday) {
+        Chip chip = (Chip) LayoutInflater.from(requireContext())
+                .inflate(R.layout.view_action_chip, binding.chipsDueShortcuts, false);
+        chip.setText(labelRes);
+        chip.setOnClickListener(v -> withWorking(todo -> {
+            todo.dueDate = DateUtils.today().plusDays(daysFromToday);
+            refreshDates();
+        }));
+        binding.chipsDueShortcuts.addView(chip);
+    }
+
     // ------------------------------------------------------------------ chips
 
     private void buildPriorityChips() {
@@ -229,6 +323,9 @@ public class TodoEditFragment extends Fragment {
         String[] labels = getResources().getStringArray(R.array.repeat_type_labels);
         RepeatType[] types = {RepeatType.DAILY, RepeatType.WEEKLY, RepeatType.MONTHLY, RepeatType.YEARLY};
         binding.chipsRepeatType.removeAllViews();
+        Chip none = newChip(binding.chipsRepeatType, getString(R.string.repeat_none));
+        none.setTag(RepeatType.NONE);
+        binding.chipsRepeatType.addView(none);
         for (int i = 0; i < types.length; i++) {
             Chip chip = newChip(binding.chipsRepeatType, labels[i]);
             chip.setTag(types[i]);
@@ -291,10 +388,14 @@ public class TodoEditFragment extends Fragment {
         applyMask(binding.chipsMonthRule, todo.monthRule);
         applyMask(binding.chipsYearRule, todo.yearRule);
 
-        binding.switchRepeat.setChecked(todo.repeat);
-        binding.repeatSection.setVisibility(todo.repeat ? View.VISIBLE : View.GONE);
-        selectRepeatType(todo.repeatType == RepeatType.NONE ? RepeatType.DAILY : todo.repeatType);
+        selectRepeatType(todo.repeat ? todo.repeatType : RepeatType.NONE);
         binding.inputRepeatInterval.setText(String.valueOf(Math.max(1, todo.repeatInterval)));
+        // Anything beyond a plain "every day/week/..." is tucked behind "Customize"; open it
+        // up front when this todo already uses it, so nothing configured stays hidden.
+        if (todo.repeat && (todo.repeatInterval > 1 || todo.weekRule != 0 || todo.monthRule != 0
+                || todo.yearRule != 0 || todo.repeatEndDate != null)) {
+            viewModel.expandedSections().add(SECTION_REPEAT_CUSTOM);
+        }
 
         binding.switchNotify.setChecked(todo.notify);
         binding.buttonNotifyTime.setEnabled(todo.notify);
@@ -304,6 +405,7 @@ public class TodoEditFragment extends Fragment {
         refreshDates();
         refreshRepeatSections();
         refreshCompletion(todo.completed);
+        applySectionStates();
     }
 
     private void bindGroupSuggestions(@Nullable List<String> groups) {
@@ -322,6 +424,7 @@ public class TodoEditFragment extends Fragment {
         binding.buttonDueDate.setText(dateLabel(working.dueDate));
         binding.buttonRepeatEnd.setText(dateLabel(working.repeatEndDate));
         binding.buttonNotifyTime.setText(DateUtils.formatTime(working.notifyMinuteOfDay));
+        refreshSummaries();
     }
 
     private String dateLabel(@Nullable LocalDate date) {
@@ -334,7 +437,13 @@ public class TodoEditFragment extends Fragment {
             return;
         }
         RepeatType type = selectedRepeatType();
-        boolean repeating = binding.switchRepeat.isChecked();
+        boolean repeating = type != RepeatType.NONE;
+        boolean custom = repeating && isExpanded(SECTION_REPEAT_CUSTOM);
+
+        binding.repeatSection.setVisibility(repeating ? View.VISIBLE : View.GONE);
+        binding.repeatCustomSection.setVisibility(custom ? View.VISIBLE : View.GONE);
+        binding.buttonRepeatCustom.setText(custom
+                ? R.string.action_repeat_customize_hide : R.string.action_repeat_customize);
 
         binding.weekRuleSection.setVisibility(
                 repeating && type == RepeatType.WEEKLY ? View.VISIBLE : View.GONE);
@@ -346,6 +455,7 @@ public class TodoEditFragment extends Fragment {
 
         binding.labelIntervalUnit.setText(intervalUnitLabel(type));
         binding.repeatPreview.setText(previewText());
+        refreshSummaries();
     }
 
     private String intervalUnitLabel(RepeatType type) {
@@ -366,7 +476,7 @@ public class TodoEditFragment extends Fragment {
     /** Live description of the cycle as currently configured, shown under the pickers. */
     private String previewText() {
         Todo preview = new Todo();
-        preview.repeat = binding.switchRepeat.isChecked();
+        preview.repeat = selectedRepeatType() != RepeatType.NONE;
         preview.repeatType = selectedRepeatType();
         preview.repeatInterval = readInterval();
         preview.weekRule = readMask(binding.chipsWeekRule);
@@ -450,8 +560,8 @@ public class TodoEditFragment extends Fragment {
         working.groupName = emptyToNull(text(binding.inputGroup));
         working.priority = selectedPriority();
 
-        working.repeat = binding.switchRepeat.isChecked();
-        working.repeatType = working.repeat ? selectedRepeatType() : RepeatType.NONE;
+        working.repeatType = selectedRepeatType();
+        working.repeat = working.repeatType != RepeatType.NONE;
         working.repeatInterval = readInterval();
         working.weekRule = readMask(binding.chipsWeekRule);
         working.monthRule = readMask(binding.chipsMonthRule);
