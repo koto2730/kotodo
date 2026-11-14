@@ -10,9 +10,11 @@ import android.content.SharedPreferences;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.mugime.kotodo.R;
 import com.mugime.kotodo.data.KotodoDatabase;
+import com.mugime.kotodo.data.TodoDao;
 import com.mugime.kotodo.elements.Todo;
 import com.mugime.kotodo.utils.DateUtils;
 
@@ -64,12 +66,38 @@ public final class NotificationScheduler {
     }
 
     /**
+     * Immediately cancels any pending alarm and dismisses any active notification
+     * for {@code todoId}. Safe to call from any thread.
+     */
+    public static void cancel(@NonNull Context context, long todoId) {
+        if (todoId <= 0) {
+            return;
+        }
+        Context appContext = context.getApplicationContext();
+        cancelAlarm(appContext, todoId);
+        NotificationManagerCompat.from(appContext).cancel((int) todoId);
+    }
+
+    /**
      * Cancels every previously armed alarm and re-arms the current set.
      * Runs asynchronously, so it is safe to call from any thread.
      */
     public static void rescheduleAll(@NonNull Context context, @NonNull LocalDate today) {
         Context appContext = context.getApplicationContext();
         worker.execute(() -> rescheduleNow(appContext, today));
+    }
+
+    private static void cancelAlarm(Context context, long todoId) {
+        AlarmManager alarmManager = context.getSystemService(AlarmManager.class);
+        if (alarmManager == null) {
+            return;
+        }
+        // FLAG_NO_CREATE returns null when the alarm is already gone.
+        PendingIntent existing = alarmIntent(context, todoId, PendingIntent.FLAG_NO_CREATE);
+        if (existing != null) {
+            alarmManager.cancel(existing);
+            existing.cancel();
+        }
     }
 
     private static void rescheduleNow(Context context, LocalDate today) {
@@ -81,18 +109,14 @@ public final class NotificationScheduler {
 
         for (String id : prefs.getStringSet(KEY_SCHEDULED_IDS, new HashSet<>())) {
             try {
-                // FLAG_NO_CREATE returns null when the alarm is already gone.
-                PendingIntent existing = alarmIntent(context, Long.parseLong(id), PendingIntent.FLAG_NO_CREATE);
-                if (existing != null) {
-                    alarmManager.cancel(existing);
-                    existing.cancel();
-                }
+                cancelAlarm(context, Long.parseLong(id));
             } catch (NumberFormatException ignored) {
                 // stale preference value, nothing to cancel
             }
         }
 
-        List<Todo> candidates = KotodoDatabase.getInstance(context).todoDao().loadNotifiable();
+        TodoDao dao = KotodoDatabase.getInstance(context).todoDao();
+        List<Todo> candidates = dao.loadNotifiable();
         long now = System.currentTimeMillis();
         long horizon = DateUtils.toEpochMillis(today.plusDays(HORIZON_DAYS), 0);
         Set<String> scheduled = new HashSet<>();
@@ -100,6 +124,10 @@ public final class NotificationScheduler {
         for (Todo todo : candidates) {
             LocalDate day = todo.notifyDate();
             if (day == null) {
+                continue;
+            }
+            Todo parent = todo.parentTodoId != null ? dao.findById(todo.parentTodoId) : null;
+            if (!TodoAlarmReceiver.shouldNotify(todo, parent, day)) {
                 continue;
             }
             long triggerAt = DateUtils.toEpochMillis(day, todo.notifyMinuteOfDay);
@@ -112,7 +140,7 @@ public final class NotificationScheduler {
             scheduled.add(Long.toString(todo.id));
         }
 
-        prefs.edit().putStringSet(KEY_SCHEDULED_IDS, scheduled).apply();
+        prefs.edit().putStringSet(KEY_SCHEDULED_IDS, scheduled).commit();
     }
 
     private static void schedule(AlarmManager alarmManager, Context context, long todoId, long triggerAt) {

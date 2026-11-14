@@ -35,13 +35,15 @@ public class TodoRepository {
     private static volatile TodoRepository instance;
 
     private final Context appContext;
+    private final KotodoDatabase db;
     private final TodoDao dao;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler mainThread = new Handler(Looper.getMainLooper());
 
     private TodoRepository(Context context) {
         this.appContext = context.getApplicationContext();
-        this.dao = KotodoDatabase.getInstance(this.appContext).todoDao();
+        this.db = KotodoDatabase.getInstance(this.appContext);
+        this.dao = this.db.todoDao();
     }
 
     public static TodoRepository get(@NonNull Context context) {
@@ -106,7 +108,23 @@ public class TodoRepository {
 
     public void update(@NonNull Todo todo, @Nullable Runnable callback) {
         io.execute(() -> {
-            dao.update(todo);
+            db.runInTransaction(() -> {
+                if (todo.completed && !todo.followUpCreated) {
+                    LocalDate completionDay = todo.completedDate != null
+                            ? todo.completedDate
+                            : DateUtils.today();
+                    Todo next = RepeatRule.nextOccurrence(todo, completionDay);
+                    if (next != null) {
+                        next.parentTodoId = todo.id;
+                        dao.insert(next);
+                        todo.followUpCreated = true;
+                    }
+                }
+                dao.update(todo);
+            });
+            if (todo.completed || !todo.notify) {
+                NotificationScheduler.cancel(appContext, todo.id);
+            }
             afterWrite();
             postIfNeeded(callback);
         });
@@ -114,14 +132,17 @@ public class TodoRepository {
 
     public void delete(@NonNull Todo todo, @Nullable Runnable callback) {
         io.execute(() -> {
-            if (todo.parentTodoId != null) {
-                Todo parent = dao.findById(todo.parentTodoId);
-                if (parent != null) {
-                    parent.followUpCreated = false;
-                    dao.update(parent);
+            db.runInTransaction(() -> {
+                if (todo.parentTodoId != null) {
+                    Todo parent = dao.findById(todo.parentTodoId);
+                    if (parent != null) {
+                        parent.followUpCreated = false;
+                        dao.update(parent);
+                    }
                 }
-            }
-            dao.delete(todo);
+                dao.delete(todo);
+            });
+            NotificationScheduler.cancel(appContext, todo.id);
             afterWrite();
             postIfNeeded(callback);
         });
@@ -130,16 +151,21 @@ public class TodoRepository {
     /** Bulk delete backing the completed screen's "clear all" action. */
     public void deleteAll(@NonNull List<Todo> todos, @Nullable Runnable callback) {
         io.execute(() -> {
-            for (Todo todo : todos) {
-                if (todo.parentTodoId != null) {
-                    Todo parent = dao.findById(todo.parentTodoId);
-                    if (parent != null) {
-                        parent.followUpCreated = false;
-                        dao.update(parent);
+            db.runInTransaction(() -> {
+                for (Todo todo : todos) {
+                    if (todo.parentTodoId != null) {
+                        Todo parent = dao.findById(todo.parentTodoId);
+                        if (parent != null) {
+                            parent.followUpCreated = false;
+                            dao.update(parent);
+                        }
                     }
                 }
+                dao.delete(todos);
+            });
+            for (Todo todo : todos) {
+                NotificationScheduler.cancel(appContext, todo.id);
             }
-            dao.delete(todos);
             afterWrite();
             postIfNeeded(callback);
         });
@@ -148,22 +174,7 @@ public class TodoRepository {
     /** Re-inserts a previously deleted todo, restoring parent's followUpCreated latch if applicable. */
     public void restore(@NonNull Todo todo) {
         io.execute(() -> {
-            if (todo.parentTodoId != null) {
-                Todo parent = dao.findById(todo.parentTodoId);
-                if (parent != null) {
-                    parent.followUpCreated = true;
-                    dao.update(parent);
-                }
-            }
-            dao.insert(todo);
-            afterWrite();
-        });
-    }
-
-    /** Re-inserts previously deleted todos, keeping their identity so undo is a true restore. */
-    public void restoreAll(@NonNull List<Todo> todos) {
-        io.execute(() -> {
-            for (Todo todo : todos) {
+            db.runInTransaction(() -> {
                 if (todo.parentTodoId != null) {
                     Todo parent = dao.findById(todo.parentTodoId);
                     if (parent != null) {
@@ -171,8 +182,27 @@ public class TodoRepository {
                         dao.update(parent);
                     }
                 }
-            }
-            dao.insertAll(todos);
+                dao.insert(todo);
+            });
+            afterWrite();
+        });
+    }
+
+    /** Re-inserts previously deleted todos, keeping their identity so undo is a true restore. */
+    public void restoreAll(@NonNull List<Todo> todos) {
+        io.execute(() -> {
+            db.runInTransaction(() -> {
+                for (Todo todo : todos) {
+                    if (todo.parentTodoId != null) {
+                        Todo parent = dao.findById(todo.parentTodoId);
+                        if (parent != null) {
+                            parent.followUpCreated = true;
+                            dao.update(parent);
+                        }
+                    }
+                }
+                dao.insertAll(todos);
+            });
             afterWrite();
         });
     }
@@ -193,29 +223,35 @@ public class TodoRepository {
     public void setCompleted(@NonNull Todo todo, boolean completed, @NonNull LocalDate day,
                              @Nullable Callback<Todo> callback) {
         io.execute(() -> {
-            Todo followUp = null;
-            // Update a copy: the caller's instance is the one the list adapter is
-            // still holding, and mutating it would hide the change from DiffUtil.
-            Todo edited = todo.copy();
-            edited.completed = completed;
-            edited.completedDate = completed ? day : null;
+            // Read the latest row from the DB inside a single transaction so a stale
+            // UI snapshot can never overwrite concurrent edits or the follow-up latch.
+            Todo followUp = db.runInTransaction(() -> {
+                Todo current = todo.id > 0 ? dao.findById(todo.id) : null;
+                Todo edited = current != null ? current : todo.copy();
+                edited.completed = completed;
+                edited.completedDate = completed ? day : null;
 
-            if (completed && !edited.followUpCreated) {
-                Todo next = RepeatRule.nextOccurrence(edited, day);
-                if (next != null) {
-                    next.parentTodoId = edited.id;
-                    long id = dao.insert(next);
-                    next.id = id;
-                    followUp = next;
-                    edited.followUpCreated = true;
+                Todo created = null;
+                if (completed && !edited.followUpCreated) {
+                    Todo next = RepeatRule.nextOccurrence(edited, day);
+                    if (next != null) {
+                        next.parentTodoId = edited.id;
+                        long id = dao.insert(next);
+                        next.id = id;
+                        created = next;
+                        edited.followUpCreated = true;
+                    }
                 }
+                dao.update(edited);
+                return created;
+            });
+            if (completed) {
+                NotificationScheduler.cancel(appContext, todo.id);
             }
-            dao.update(edited);
             afterWrite();
 
-            Todo result = followUp;
             if (callback != null) {
-                mainThread.post(() -> callback.onResult(result));
+                mainThread.post(() -> callback.onResult(followUp));
             }
         });
     }
@@ -230,10 +266,12 @@ public class TodoRepository {
     public void importTodos(@NonNull List<Todo> todos, boolean replaceExisting,
                             @Nullable Callback<Integer> callback) {
         io.execute(() -> {
-            if (replaceExisting) {
-                dao.deleteAll();
-            }
-            dao.insertAll(todos);
+            db.runInTransaction(() -> {
+                if (replaceExisting) {
+                    dao.deleteAll();
+                }
+                dao.insertAll(todos);
+            });
             afterWrite();
             if (callback != null) {
                 mainThread.post(() -> callback.onResult(todos.size()));

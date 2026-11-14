@@ -49,6 +49,7 @@ public class TodoListViewModel extends AndroidViewModel {
 
     private final LiveData<List<Todo>> source;
     private ListMode mode = ListMode.TODAY;
+    private LocalDate lastKnownToday = DateUtils.today();
     private List<Todo> lastLoaded = Collections.emptyList();
 
     /**
@@ -97,13 +98,30 @@ public class TodoListViewModel extends AndroidViewModel {
     public void setMode(@NonNull ListMode mode) {
         if (mode == ListMode.TODAY && pendingTodayReset) {
             pendingTodayReset = false;
-            referenceDate.setValue(DateUtils.today());
+            lastKnownToday = DateUtils.today();
+            referenceDate.setValue(lastKnownToday);
         }
         if (query.getValue() != null && this.mode == mode) {
             return;
         }
         this.mode = mode;
         query.setValue(new Query(mode, currentDate()));
+    }
+
+    /**
+     * Advances the reference date when the device calendar has crossed midnight
+     * while the screen was showing the previous "today". Prevents a cached
+     * background process from staying stuck on yesterday's query the next day.
+     */
+    public void syncTodayIfRolledOver() {
+        LocalDate realToday = DateUtils.today();
+        if (!realToday.equals(lastKnownToday)) {
+            boolean wasOnToday = currentDate().equals(lastKnownToday);
+            lastKnownToday = realToday;
+            if (wasOnToday) {
+                setReferenceDate(realToday);
+            }
+        }
     }
 
     public ListMode getMode() {

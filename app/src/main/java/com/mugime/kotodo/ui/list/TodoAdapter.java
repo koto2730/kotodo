@@ -153,7 +153,8 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
         @Override
         public boolean areContentsTheSame(@NonNull Todo oldItem, @NonNull Todo newItem) {
             // Room hands out fresh instances on every emission, so compare the
-            // fields the row actually renders.
+            // fields the row actually renders plus the repeat bookkeeping fields
+            // held by the ViewHolder's click listeners.
             return oldItem.completed == newItem.completed
                     && oldItem.notify == newItem.notify
                     && oldItem.repeat == newItem.repeat
@@ -162,6 +163,8 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
                     && oldItem.monthRule == newItem.monthRule
                     && oldItem.yearRule == newItem.yearRule
                     && oldItem.notifyMinuteOfDay == newItem.notifyMinuteOfDay
+                    && oldItem.followUpCreated == newItem.followUpCreated
+                    && Objects.equals(oldItem.parentTodoId, newItem.parentTodoId)
                     && Objects.equals(oldItem.priority, newItem.priority)
                     && Objects.equals(oldItem.repeatType, newItem.repeatType)
                     && Objects.equals(oldItem.title, newItem.title)

@@ -112,6 +112,19 @@ public class TodoListFragment extends Fragment implements TodoAdapter.Listener {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (viewModel != null) {
+            viewModel.syncTodayIfRolledOver();
+            if (adapter != null) {
+                LocalDate date = viewModel.currentDate();
+                adapter.setCompletionEditable(
+                        viewModel.getMode() != ListMode.TODAY || DateUtils.today().equals(date));
+            }
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;

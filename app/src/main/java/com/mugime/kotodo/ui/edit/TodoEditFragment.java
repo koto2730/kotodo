@@ -121,6 +121,14 @@ public class TodoEditFragment extends Fragment {
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        // Keep the ViewModel's working Todo in sync with the widgets across
+        // configuration changes so bind() does not revert unsaved edits.
+        collectIntoWorking();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
@@ -555,7 +563,15 @@ public class TodoEditFragment extends Fragment {
         }
         binding.layoutTitle.setError(null);
 
-        working.title = title;
+        collectIntoWorking();
+        viewModel.save(working, this::navigateBack);
+    }
+
+    private void collectIntoWorking() {
+        if (working == null || binding == null) {
+            return;
+        }
+        working.title = text(binding.inputTitle);
         working.description = emptyToNull(text(binding.inputDescription));
         working.groupName = emptyToNull(text(binding.inputGroup));
         working.priority = selectedPriority();
@@ -579,8 +595,6 @@ public class TodoEditFragment extends Fragment {
             working.completedDate = null;
         }
         working.completed = completed;
-
-        viewModel.save(working, this::navigateBack);
     }
 
     private void confirmDelete() {

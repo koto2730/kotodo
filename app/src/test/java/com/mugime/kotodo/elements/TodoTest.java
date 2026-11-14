@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.mugime.kotodo.notify.TodoAlarmReceiver;
 import com.mugime.kotodo.utils.RepeatRule;
 
 import org.junit.Test;
@@ -245,5 +246,43 @@ public class TodoTest {
         Todo secondChild = parent.followUpCreated ? null : RepeatRule.nextOccurrence(parent, TODAY);
         org.junit.Assert.assertNotNull(secondChild);
         assertEquals(TODAY.plusDays(1), secondChild.dueDate);
+    }
+
+    @Test
+    public void completedOrDisabledTodoNeverNotifies() {
+        Todo todo = new Todo("call bank", null);
+        todo.dueDate = TODAY;
+        todo.notify = true;
+
+        assertTrue(TodoAlarmReceiver.shouldNotify(todo, null, TODAY));
+
+        todo.completed = true;
+        todo.completedDate = TODAY;
+        assertFalse(TodoAlarmReceiver.shouldNotify(todo, null, TODAY));
+
+        todo.completed = false;
+        todo.completedDate = null;
+        todo.notify = false;
+        assertFalse(TodoAlarmReceiver.shouldNotify(todo, null, TODAY));
+    }
+
+    @Test
+    public void repeatFollowUpDoesNotNotifyOnTheDayParentWasCompleted() {
+        Todo parent = new Todo("daily report", null);
+        parent.id = 1L;
+        parent.startDate = TODAY.minusDays(1);
+        parent.dueDate = TODAY;
+        parent.repeat = true;
+        parent.repeatType = RepeatType.DAILY;
+        parent.notify = true;
+        parent.completed = true;
+        parent.completedDate = TODAY;
+
+        Todo followUp = RepeatRule.nextOccurrence(parent, TODAY);
+        org.junit.Assert.assertNotNull(followUp);
+        followUp.parentTodoId = parent.id;
+        // Follow-up has startDate == TODAY (notifyDate == TODAY), but parent was already completed today
+        assertEquals(TODAY, followUp.notifyDate());
+        assertFalse(TodoAlarmReceiver.shouldNotify(followUp, parent, TODAY));
     }
 }
