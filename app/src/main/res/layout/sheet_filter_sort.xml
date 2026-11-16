@@ -68,6 +68,13 @@
             android:layout_marginTop="8dp"
             android:text="@string/filter_hide_completed" />
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_viewer_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/filter_viewer_mode" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_reset"
             style="@style/Widget.Kotodo.Button.Text"

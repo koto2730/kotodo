@@ -107,10 +107,12 @@ public class TodoTest {
         Todo original = new Todo("thing", null);
         original.followUpCreated = true;
         original.parentTodoId = 99L;
+        original.weekOfMonth = Todo.WEEK_OF_MONTH_LAST;
 
         Todo copy = original.copy();
         assertTrue(copy.followUpCreated);
         assertEquals(Long.valueOf(99L), copy.parentTodoId);
+        assertEquals(Todo.WEEK_OF_MONTH_LAST, copy.weekOfMonth);
     }
 
     @Test

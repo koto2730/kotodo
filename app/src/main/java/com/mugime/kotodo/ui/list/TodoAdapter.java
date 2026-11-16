@@ -2,7 +2,9 @@ package com.mugime.kotodo.ui.list;
 
 import android.content.Context;
 import android.graphics.Paint;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -37,6 +39,7 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
     private final Listener listener;
     private LocalDate referenceDate = DateUtils.today();
     private boolean completionEditable = true;
+    private boolean viewerMode = false;
 
     public TodoAdapter(@NonNull Listener listener) {
         super(DIFF);
@@ -66,6 +69,21 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
         }
     }
 
+    public boolean isCompletionEditable() {
+        return completionEditable;
+    }
+
+    /**
+     * Viewer mode hides metadata and priority stripe and expands title/description
+     * so long notes can be read in full directly from the list.
+     */
+    public void setViewerMode(boolean viewerMode) {
+        if (this.viewerMode != viewerMode) {
+            this.viewerMode = viewerMode;
+            notifyItemRangeChanged(0, getItemCount());
+        }
+    }
+
     @Override
     public long getItemId(int position) {
         return getItem(position).id;
@@ -81,7 +99,7 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull TodoViewHolder holder, int position) {
-        holder.bind(getItem(position), referenceDate, completionEditable, listener);
+        holder.bind(getItem(position), referenceDate, completionEditable, viewerMode, listener);
     }
 
     static class TodoViewHolder extends RecyclerView.ViewHolder {
@@ -93,23 +111,30 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
             this.binding = binding;
         }
 
-        void bind(Todo todo, LocalDate referenceDate, boolean completionEditable, Listener listener) {
+        void bind(Todo todo, LocalDate referenceDate, boolean completionEditable,
+                  boolean viewerMode, Listener listener) {
             Context context = binding.getRoot().getContext();
 
             binding.todoTitle.setText(todo.title);
+            binding.todoTitle.setMaxLines(viewerMode ? Integer.MAX_VALUE : 2);
+            binding.todoTitle.setEllipsize(viewerMode ? null : TextUtils.TruncateAt.END);
             applyStrikeThrough(todo.completed);
 
             String meta = TodoFormatter.metaLine(context, todo);
             binding.todoMeta.setText(meta);
-            binding.todoMeta.setVisibility(meta.isEmpty() ? android.view.View.GONE : android.view.View.VISIBLE);
+            binding.todoMeta.setVisibility(
+                    viewerMode || meta.isEmpty() ? View.GONE : View.VISIBLE);
 
             String description = todo.description == null ? "" : todo.description.trim();
             binding.todoDescription.setText(description);
+            binding.todoDescription.setMaxLines(viewerMode ? Integer.MAX_VALUE : 2);
+            binding.todoDescription.setEllipsize(viewerMode ? null : TextUtils.TruncateAt.END);
             binding.todoDescription.setVisibility(
-                    description.isEmpty() ? android.view.View.GONE : android.view.View.VISIBLE);
+                    description.isEmpty() ? View.GONE : View.VISIBLE);
 
             int[] colors = context.getResources().getIntArray(R.array.priority_colors);
             binding.priorityStripe.setBackgroundColor(colors[todo.priority.ordinal()]);
+            binding.priorityStripe.setVisibility(viewerMode ? View.GONE : View.VISIBLE);
 
             boolean overdue = todo.isOverdueOn(referenceDate);
             binding.todoMeta.setTextColor(ContextCompat.getColor(
@@ -159,6 +184,7 @@ public class TodoAdapter extends ListAdapter<Todo, TodoAdapter.TodoViewHolder> {
                     && oldItem.notify == newItem.notify
                     && oldItem.repeat == newItem.repeat
                     && oldItem.repeatInterval == newItem.repeatInterval
+                    && oldItem.weekOfMonth == newItem.weekOfMonth
                     && oldItem.weekRule == newItem.weekRule
                     && oldItem.monthRule == newItem.monthRule
                     && oldItem.yearRule == newItem.yearRule

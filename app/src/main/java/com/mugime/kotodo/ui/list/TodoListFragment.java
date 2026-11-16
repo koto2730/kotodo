@@ -21,7 +21,9 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.snackbar.Snackbar;
@@ -54,6 +56,7 @@ import java.util.List;
 public class TodoListFragment extends Fragment implements TodoAdapter.Listener {
 
     public static final String ARG_MODE = "mode";
+    public static final String REQUEST_RESET_TODAY = "com.mugime.kotodo.REQUEST_RESET_TODAY";
 
     private FragmentTodoListBinding binding;
     private TodoListViewModel viewModel;
@@ -85,6 +88,14 @@ public class TodoListFragment extends Fragment implements TodoAdapter.Listener {
         adapter = new TodoAdapter(this);
         binding.todoList.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.todoList.setAdapter(adapter);
+        attachSwipeHelper();
+
+        if (mode == ListMode.TODAY) {
+            getParentFragmentManager().setFragmentResultListener(
+                    REQUEST_RESET_TODAY,
+                    getViewLifecycleOwner(),
+                    (requestKey, result) -> resetToToday());
+        }
 
         setUpDateBar(mode);
         setUpMenu();
@@ -131,13 +142,78 @@ public class TodoListFragment extends Fragment implements TodoAdapter.Listener {
     }
 
     private void showTodos(List<Todo> todos) {
-        adapter.submitList(todos);
+        adapter.setViewerMode(viewModel.getOptions().viewerMode);
+
+        LinearLayoutManager layoutManager =
+                (LinearLayoutManager) binding.todoList.getLayoutManager();
+        int firstPos = RecyclerView.NO_POSITION;
+        int topOffset = 0;
+        if (layoutManager != null) {
+            firstPos = layoutManager.findFirstVisibleItemPosition();
+            View firstView = firstPos != RecyclerView.NO_POSITION
+                    ? layoutManager.findViewByPosition(firstPos) : null;
+            if (firstView != null) {
+                topOffset = firstView.getTop() - binding.todoList.getPaddingTop();
+            }
+        }
+        final int savedPos = firstPos;
+        final int savedOffset = topOffset;
+
+        adapter.submitList(todos, () -> {
+            if (binding != null && layoutManager != null && savedPos != RecyclerView.NO_POSITION) {
+                layoutManager.scrollToPositionWithOffset(savedPos, savedOffset);
+            }
+        });
         boolean empty = todos == null || todos.isEmpty();
         binding.emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
         binding.todoList.setVisibility(empty ? View.GONE : View.VISIBLE);
         binding.emptyView.setText(viewModel.getOptions().isFiltering()
                 ? R.string.empty_filtered
                 : R.string.empty_list);
+    }
+
+    private void attachSwipeHelper() {
+        ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(
+                0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public int getSwipeDirs(@NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder) {
+                int dirs = ItemTouchHelper.LEFT;
+                if (adapter != null && adapter.isCompletionEditable()) {
+                    dirs |= ItemTouchHelper.RIGHT;
+                }
+                return dirs;
+            }
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getBindingAdapterPosition();
+                if (position == RecyclerView.NO_POSITION || adapter == null) {
+                    return;
+                }
+                List<Todo> current = adapter.getCurrentList();
+                if (position < 0 || position >= current.size()) {
+                    return;
+                }
+                Todo todo = current.get(position);
+                if (direction == ItemTouchHelper.RIGHT) {
+                    adapter.notifyItemChanged(position);
+                    if (adapter.isCompletionEditable()) {
+                        onToggleCompleted(todo, !todo.completed);
+                    }
+                } else if (direction == ItemTouchHelper.LEFT) {
+                    deleteWithUndo(todo);
+                }
+            }
+        };
+        new ItemTouchHelper(callback).attachToRecyclerView(binding.todoList);
     }
 
     // -------------------------------------------------------------- date bar

@@ -19,7 +19,6 @@ import com.mugime.kotodo.elements.Priority;
 import com.mugime.kotodo.ui.edit.TodoEditFragment;
 import com.mugime.kotodo.ui.list.QuickAddSheet;
 import com.mugime.kotodo.ui.list.TodoListFragment;
-import com.mugime.kotodo.ui.list.TodoListViewModel;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -60,22 +59,14 @@ public class MainActivity extends AppCompatActivity {
         // back-press). Overridden immediately below only to special-case 当日.
         NavigationUI.setupWithNavController(navigationView, navController);
         navigationView.setNavigationItemSelectedListener(item -> {
+            boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
             if (item.getItemId() == R.id.nav_today) {
                 // NavigationUI's default listener leaves the Today screen's date bar
-                // wherever the user last navigated it to. Two complementary fixes:
-                // the static flag is timing-proof for navigating back from another
-                // drawer destination (Navigation Component's restoreState can bring
-                // back a previously saved fragment/ViewModel on a timing this
-                // listener can't reliably observe), while the direct lookup below
-                // covers re-selecting 当日 while already on it, where
-                // launchSingleTop means no navigation - and so no ViewModel
-                // lifecycle callback - happens at all.
-                TodoListViewModel.requestTodayReset();
-            }
-            boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
-            if (handled && item.getItemId() == R.id.nav_today) {
-                getSupportFragmentManager().executePendingTransactions();
-                resetTodayScreenIfShown();
+                // wherever the user last navigated it to. Deliver a Fragment Result on
+                // the NavHostFragment's child FragmentManager so that whether the
+                // Today fragment is already started or about to be restored/started by
+                // Navigation Component, it receives the reset request lifecycle-safely.
+                requestTodayReset();
             }
             drawer.closeDrawers();
             return handled;
@@ -128,12 +119,14 @@ public class MainActivity extends AppCompatActivity {
         return Objects.requireNonNull(host, "NavHostFragment is missing").getNavController();
     }
 
-    private void resetTodayScreenIfShown() {
+    private void requestTodayReset() {
         NavHostFragment host = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_content_main);
         if (host == null) {
             return;
         }
+        host.getChildFragmentManager().setFragmentResult(
+                TodoListFragment.REQUEST_RESET_TODAY, new Bundle());
         Fragment current = host.getChildFragmentManager().getPrimaryNavigationFragment();
         if (current instanceof TodoListFragment) {
             ((TodoListFragment) current).resetToToday();

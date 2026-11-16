@@ -78,6 +78,11 @@ public final class RepeatRule {
         return days;
     }
 
+    /** True when {@code monthRule} includes 29, 30 or 31 (which clamp in shorter months). */
+    public static boolean hasClampedMonthDays(int monthRule) {
+        return hasBit(monthRule, 28) || hasBit(monthRule, 29) || hasBit(monthRule, 30);
+    }
+
     /** Months selected in {@code yearRule}, ascending, 1 = January. */
     @NonNull
     public static List<Integer> months(int yearRule) {
@@ -145,11 +150,25 @@ public final class RepeatRule {
     }
 
     private static LocalDate nextMonthly(Todo todo, LocalDate from, int interval) {
+        YearMonth base = YearMonth.from(from);
+        if (todo.weekOfMonth > 0) {
+            List<DayOfWeek> weekdays = weekDays(todo.weekRule);
+            if (weekdays.isEmpty()) {
+                weekdays.add(from.getDayOfWeek());
+            }
+            for (int cycle = 0; cycle <= CYCLE_SEARCH_LIMIT; cycle++) {
+                YearMonth month = base.plusMonths((long) cycle * interval);
+                LocalDate candidate = firstNthWeekdayAfter(month, todo.weekOfMonth, weekdays, from);
+                if (candidate != null) {
+                    return candidate;
+                }
+            }
+            return null;
+        }
         List<Integer> days = monthDays(todo.monthRule);
         if (days.isEmpty()) {
             days.add(from.getDayOfMonth());
         }
-        YearMonth base = YearMonth.from(from);
         for (int cycle = 0; cycle <= CYCLE_SEARCH_LIMIT; cycle++) {
             YearMonth month = base.plusMonths((long) cycle * interval);
             LocalDate candidate = firstDayAfter(month, days, from);
@@ -164,6 +183,23 @@ public final class RepeatRule {
         List<Integer> monthValues = months(todo.yearRule);
         if (monthValues.isEmpty()) {
             monthValues.add(from.getMonthValue());
+        }
+        if (todo.weekOfMonth > 0) {
+            List<DayOfWeek> weekdays = weekDays(todo.weekRule);
+            if (weekdays.isEmpty()) {
+                weekdays.add(from.getDayOfWeek());
+            }
+            for (int cycle = 0; cycle <= CYCLE_SEARCH_LIMIT; cycle++) {
+                int year = from.getYear() + cycle * interval;
+                for (int month : monthValues) {
+                    LocalDate candidate = firstNthWeekdayAfter(
+                            YearMonth.of(year, month), todo.weekOfMonth, weekdays, from);
+                    if (candidate != null) {
+                        return candidate;
+                    }
+                }
+            }
+            return null;
         }
         List<Integer> days = monthDays(todo.monthRule);
         if (days.isEmpty()) {
@@ -180,6 +216,27 @@ public final class RepeatRule {
             }
         }
         return null;
+    }
+
+    /** Earliest matching nth/last weekday in {@code month} that is strictly after {@code after}. */
+    @Nullable
+    private static LocalDate firstNthWeekdayAfter(YearMonth month, int weekOfMonth,
+                                                  List<DayOfWeek> weekdays, LocalDate after) {
+        LocalDate earliest = null;
+        for (DayOfWeek dow : weekdays) {
+            LocalDate date;
+            if (weekOfMonth >= Todo.WEEK_OF_MONTH_LAST) {
+                date = month.atEndOfMonth().with(TemporalAdjusters.lastInMonth(dow));
+            } else {
+                date = month.atDay(1).with(TemporalAdjusters.dayOfWeekInMonth(weekOfMonth, dow));
+            }
+            if (YearMonth.from(date).equals(month) && date.isAfter(after)) {
+                if (earliest == null || date.isBefore(earliest)) {
+                    earliest = date;
+                }
+            }
+        }
+        return earliest;
     }
 
     /** Earliest date in {@code month} that is one of {@code days} and later than {@code after}. */
@@ -220,7 +277,7 @@ public final class RepeatRule {
         }
 
         LocalDate next = null;
-        LocalDate cursor = anchor;
+        LocalDate cursor = fastForwardCursor(todo, anchor, today);
         for (int guard = 0; guard < CATCH_UP_LIMIT; guard++) {
             LocalDate candidate = nextDateAfter(todo, cursor);
             if (candidate == null) {
@@ -234,6 +291,14 @@ public final class RepeatRule {
                 break;
             }
             cursor = candidate;
+        }
+        if (next != null && !next.isAfter(today)) {
+            LocalDate candidate = nextDateAfter(todo, today);
+            if (candidate == null
+                    || (todo.repeatEndDate != null && candidate.isAfter(todo.repeatEndDate))) {
+                return null;
+            }
+            next = candidate;
         }
         if (next == null) {
             return null;
@@ -252,5 +317,34 @@ public final class RepeatRule {
             }
         }
         return follow;
+    }
+
+    /**
+     * Jumps {@code anchor} close to {@code today} in O(1) when a repeating todo is
+     * hundreds or thousands of cycles overdue, preserving the exact interval phase.
+     */
+    private static LocalDate fastForwardCursor(Todo todo, LocalDate anchor, LocalDate today) {
+        if (!anchor.isBefore(today)) {
+            return anchor;
+        }
+        int interval = Math.max(1, todo.repeatInterval);
+        switch (todo.repeatType) {
+            case DAILY: {
+                long daysBehind = ChronoUnit.DAYS.between(anchor, today);
+                if (daysBehind >= interval) {
+                    return anchor.plusDays((daysBehind / interval) * interval);
+                }
+                return anchor;
+            }
+            case WEEKLY: {
+                long weeksBehind = ChronoUnit.WEEKS.between(weekStart(anchor), weekStart(today));
+                if (weeksBehind > interval) {
+                    return anchor.plusWeeks(((weeksBehind - 1) / interval) * interval);
+                }
+                return anchor;
+            }
+            default:
+                return anchor;
+        }
     }
 }

@@ -14,20 +14,43 @@
         <!-- Dialog action buttons ("OK", "Delete"...) get the 朱 accent instead of
              the default colorPrimary - see Theme.Kotodo.AlertDialog below. -->
         <item name="alertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
+        <item name="materialCalendarTheme">@style/ThemeOverlay.Kotodo.MaterialCalendar</item>
+        <item name="materialTimePickerTheme">@style/ThemeOverlay.Kotodo.MaterialTimePicker</item>
     </style>
 
     <!--
-      Material's default AlertDialog styling colours the action buttons with
-      colorPrimary. That is our near-neutral 鉄紺 chrome colour, which reads fine
-      on the light theme's white dialog background but nearly disappears against
-      the dark theme's dark dialog surface. Buttons are things you act on, so they
-      get the same 朱 accent as the FAB, checkboxes and switches instead.
-      ?attr/colorSecondary (not a literal colour) so this single style adapts to
-      whichever Theme.Kotodo - light or night - is asking for it.
+      Material's default AlertDialog, MaterialDatePicker, and MaterialTimePicker
+      styling colours the action buttons with colorPrimary. That is our near-neutral
+      鉄紺 chrome colour, which reads fine on the light theme's white dialog
+      background but nearly disappears against the dark theme's dark dialog surface.
+      Buttons are things you act on, so they get the same 朱 accent as the FAB,
+      checkboxes and switches instead.
     -->
+    <style name="Widget.Kotodo.DialogButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">?attr/colorSecondary</item>
+    </style>
+
     <style name="Theme.Kotodo.AlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="colorPrimary">?attr/colorSecondary</item>
         <item name="colorAccent">?attr/colorSecondary</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Kotodo.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Kotodo.DialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Kotodo.DialogButton</item>
+    </style>
+
+    <style name="ThemeOverlay.Kotodo.MaterialCalendar" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="colorPrimary">?attr/colorSecondary</item>
+        <item name="colorOnPrimary">?attr/colorOnSecondary</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Kotodo.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Kotodo.DialogButton</item>
+    </style>
+
+    <style name="ThemeOverlay.Kotodo.MaterialTimePicker" parent="ThemeOverlay.MaterialComponents.TimePicker">
+        <item name="colorPrimary">?attr/colorSecondary</item>
+        <item name="colorOnPrimary">?attr/colorOnSecondary</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Kotodo.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Kotodo.DialogButton</item>
     </style>
 
     <!--

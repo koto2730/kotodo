@@ -174,4 +174,41 @@ public class TodoCsvTest {
         assertTrue(result.hadHeader);
         assertEquals("with bom", result.todos.get(0).title);
     }
+
+    @Test
+    public void exportPrependsUtf8BomAndSanitizesFormulaInjectionWithRoundTrip() {
+        Todo dangerous = new Todo("=SUM(A1:A2)", "+cmd|' /C calc'!A0");
+        dangerous.groupName = "@admin";
+
+        String csv = TodoCsv.export(Collections.singletonList(dangerous));
+        assertTrue("Expected UTF-8 BOM at start of exported CSV",
+                !csv.isEmpty() && csv.charAt(0) == Csv.BOM);
+        assertTrue("Expected formula prefix to be escaped with leading apostrophe",
+                csv.contains("'=SUM(A1:A2)"));
+
+        TodoCsv.ImportResult imported = TodoCsv.parse(csv);
+        assertEquals(1, imported.todos.size());
+        Todo restored = imported.todos.get(0);
+        assertEquals("=SUM(A1:A2)", restored.title);
+        assertEquals("+cmd|' /C calc'!A0", restored.description);
+        assertEquals("@admin", restored.groupName);
+    }
+
+    @Test
+    public void exportAndImportNthWeekdayMonthlyRepeatRule() {
+        Todo todo = new Todo("月例会議", null);
+        todo.repeat = true;
+        todo.repeatType = RepeatType.MONTHLY;
+        todo.weekOfMonth = Todo.WEEK_OF_MONTH_LAST;
+        todo.weekRule = RepeatRule.withBit(0, 4, true); // Friday
+
+        String csv = TodoCsv.export(Collections.singletonList(todo));
+        TodoCsv.ImportResult imported = TodoCsv.parse(csv);
+
+        assertEquals(1, imported.todos.size());
+        Todo restored = imported.todos.get(0);
+        assertEquals(RepeatType.MONTHLY, restored.repeatType);
+        assertEquals(Todo.WEEK_OF_MONTH_LAST, restored.weekOfMonth);
+        assertEquals(todo.weekRule, restored.weekRule);
+    }
 }

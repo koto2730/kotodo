@@ -18,6 +18,9 @@ public class BootReceiver extends BroadcastReceiver {
             return;
         }
         NotificationScheduler.createChannel(context);
-        NotificationScheduler.rescheduleAll(context, DateUtils.today());
+        PendingResult pendingResult = goAsync();
+        boolean isBoot = Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction());
+        NotificationScheduler.rescheduleAll(
+                context, DateUtils.today(), isBoot, pendingResult::finish);
     }
 }

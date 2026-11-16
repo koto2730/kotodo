@@ -93,14 +93,18 @@ public final class TodoFormatter {
                 base = single
                         ? context.getString(R.string.repeat_every_month)
                         : context.getString(R.string.repeat_every_n_months, interval);
-                detail = daysOfMonthLabel(context, todo.monthRule);
+                detail = todo.weekOfMonth > 0
+                        ? nthWeekdaysLabel(context, todo.weekOfMonth, todo.weekRule)
+                        : daysOfMonthLabel(context, todo.monthRule);
                 break;
             case YEARLY:
                 base = single
                         ? context.getString(R.string.repeat_every_year)
                         : context.getString(R.string.repeat_every_n_years, interval);
-                detail = joinMonthAndDay(context,
-                        monthsLabel(todo.yearRule), daysOfMonthLabel(context, todo.monthRule));
+                String dayPart = todo.weekOfMonth > 0
+                        ? nthWeekdaysLabel(context, todo.weekOfMonth, todo.weekRule)
+                        : daysOfMonthLabel(context, todo.monthRule);
+                detail = joinMonthAndDay(context, monthsLabel(todo.yearRule), dayPart);
                 break;
             default:
                 return "";
@@ -140,6 +144,22 @@ public final class TodoFormatter {
             names.add(context.getString(R.string.day_of_month, day));
         }
         return String.join("・", names);
+    }
+
+    /** Nth/last weekday label for monthly/yearly rules, e.g. "第3月曜日" or "3rd Mon". */
+    @NonNull
+    public static String nthWeekdaysLabel(@NonNull Context context, int weekOfMonth, int weekRule) {
+        if (weekOfMonth <= 0) {
+            return "";
+        }
+        String[] labels = context.getResources().getStringArray(R.array.week_of_month_labels);
+        int index = Math.min(labels.length - 1, weekOfMonth);
+        String ordinal = labels[index];
+        String weekdays = weekDaysLabel(weekRule);
+        if (weekdays.isEmpty()) {
+            return ordinal;
+        }
+        return context.getString(R.string.repeat_nth_weekday, ordinal, weekdays);
     }
 
     /**

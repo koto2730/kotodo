@@ -14,8 +14,8 @@ import java.util.List;
  */
 public final class Csv {
 
-    /** UTF-8 byte order mark, which Excel writes at the start of exported files. */
-    private static final char BOM = (char) 0xFEFF;
+    /** UTF-8 byte order mark, which Excel expects at the start of UTF-8 CSV files. */
+    public static final char BOM = '\uFEFF';
 
     private Csv() {
     }
@@ -60,7 +60,7 @@ public final class Csv {
                     rowStarted = true;
                     break;
                 case ',':
-                    row.add(field.toString());
+                    row.add(unsanitizeFormula(field.toString()));
                     field.setLength(0);
                     rowStarted = true;
                     break;
@@ -68,7 +68,7 @@ public final class Csv {
                     // Part of a CRLF pair; the '\n' below closes the row.
                     break;
                 case '\n':
-                    row.add(field.toString());
+                    row.add(unsanitizeFormula(field.toString()));
                     field.setLength(0);
                     rows.add(row);
                     row = new ArrayList<>();
@@ -82,7 +82,7 @@ public final class Csv {
         }
 
         if (rowStarted || field.length() > 0 || !row.isEmpty()) {
-            row.add(field.toString());
+            row.add(unsanitizeFormula(field.toString()));
             rows.add(row);
         }
         return rows;
@@ -106,16 +106,42 @@ public final class Csv {
         if (value == null || value.isEmpty()) {
             return "";
         }
-        boolean needsQuotes = value.indexOf(',') >= 0
-                || value.indexOf('"') >= 0
-                || value.indexOf('\n') >= 0
-                || value.indexOf('\r') >= 0
-                || value.charAt(0) == ' '
-                || value.charAt(value.length() - 1) == ' ';
+        String safe = sanitizeFormula(value);
+        boolean needsQuotes = safe.indexOf(',') >= 0
+                || safe.indexOf('"') >= 0
+                || safe.indexOf('\n') >= 0
+                || safe.indexOf('\r') >= 0
+                || safe.charAt(0) == ' '
+                || safe.charAt(safe.length() - 1) == ' ';
         if (!needsQuotes) {
-            return value;
+            return safe;
         }
-        return '"' + value.replace("\"", "\"\"") + '"';
+        return '"' + safe.replace("\"", "\"\"") + '"';
+    }
+
+    /**
+     * Prefixes fields starting with {@code =}, {@code +}, {@code -}, {@code @} or tab
+     * with a single quote so spreadsheet apps do not evaluate them as formulas.
+     */
+    @NonNull
+    public static String sanitizeFormula(@NonNull String value) {
+        if (!value.isEmpty() && isFormulaTrigger(value.charAt(0))) {
+            return "'" + value;
+        }
+        return value;
+    }
+
+    /** Reverses {@link #sanitizeFormula} on import so round-tripping is lossless. */
+    @NonNull
+    public static String unsanitizeFormula(@NonNull String value) {
+        if (value.length() >= 2 && value.charAt(0) == '\'' && isFormulaTrigger(value.charAt(1))) {
+            return value.substring(1);
+        }
+        return value;
+    }
+
+    private static boolean isFormulaTrigger(char c) {
+        return c == '=' || c == '+' || c == '-' || c == '@' || c == '\t';
     }
 
     /** True when the row has no content at all, e.g. a stray blank line. */

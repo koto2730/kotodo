@@ -183,6 +183,7 @@ One table, `todos`, holding:
 | `repeat` | 繰り返し有り | |
 | `repeatType` | 繰り返しの単位 | `DAILY` / `WEEKLY` / `MONTHLY` / `YEARLY` |
 | `repeatInterval` | 間隔 | every N units |
+| `weekOfMonth` | 月の週指定 | `0` (日にち指定), `1`–`4` (第1〜第4), `5` (最終) |
 | `weekRule` | 曜日指定 | bit mask, Monday = bit 0 |
 | `monthRule` | 日にち指定 | bit mask, day 1 = bit 0 |
 | `yearRule` | 月指定 | bit mask, January = bit 0 |
@@ -279,6 +280,7 @@ app/src/main/java/com/mugime/kotodo/
   when that is not granted.
 - Un-completing a repeating todo does not remove the follow-up it created; delete it
   by hand if you do not want it.
+- For cross-platform / iOS porting details, see [`docs/PORTABLE_SPEC.md`](docs/PORTABLE_SPEC.md).
 
 ## License
 

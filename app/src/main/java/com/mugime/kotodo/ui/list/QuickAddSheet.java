@@ -67,6 +67,7 @@ public class QuickAddSheet extends BottomSheetDialogFragment {
 
         addChip(binding.chipsQuickWhen, getString(R.string.shortcut_today), 0, true);
         addChip(binding.chipsQuickWhen, getString(R.string.shortcut_tomorrow), 1, false);
+        addChip(binding.chipsQuickWhen, getString(R.string.shortcut_next_week), 7, false);
         addChip(binding.chipsQuickWhen, getString(R.string.shortcut_no_date), NO_DATE, false);
 
         for (Priority priority : Priority.values()) {

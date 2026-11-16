@@ -16,5 +16,8 @@
           declared once, in values/themes.xml.
         -->
         <item name="alertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
+        <item name="materialCalendarTheme">@style/ThemeOverlay.Kotodo.MaterialCalendar</item>
+        <item name="materialTimePickerTheme">@style/ThemeOverlay.Kotodo.MaterialTimePicker</item>
     </style>
 </resources>

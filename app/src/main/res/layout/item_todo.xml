@@ -21,6 +21,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:contentDescription="@string/action_toggle_complete"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:minWidth="48dp"
         android:minHeight="48dp" />
 

@@ -40,6 +40,7 @@
     <string name="filter_group">Group</string>
     <string name="filter_no_group">No group</string>
     <string name="filter_hide_completed">Hide completed</string>
+    <string name="filter_viewer_mode">Viewer mode (title and full description only)</string>
     <string name="sort_by">Sort by</string>
     <string name="sort_ascending">Ascending</string>
 
@@ -58,6 +59,7 @@
     <string name="field_notify_time">Reminder time</string>
     <string name="field_repeat">Repeats</string>
     <string name="field_repeat_interval">Every</string>
+    <string name="field_month_mode">Monthly pattern</string>
     <string name="field_week_rule">On these weekdays</string>
     <string name="field_month_rule">On these days of the month</string>
     <string name="field_year_rule">In these months</string>
@@ -70,6 +72,7 @@
     <string name="hint_undated">A todo with no dates always stays on the list until you complete it.</string>
     <string name="hint_notify">The reminder fires on the earlier of the two dates above.</string>
     <string name="hint_repeat">Leaving the day pickers empty repeats on the same day as the due date.</string>
+    <string name="hint_repeat_month_end_clamp">Days 29–31 move to the last day of shorter months (e.g. Feb 28/29 or the 30th).</string>
 
     <!-- Dialogs -->
     <string name="dialog_delete_title">Delete this todo?</string>
@@ -109,6 +112,7 @@
     <string name="day_of_month">%d</string>
     <!-- Months and days of a yearly rule, e.g. "Jul" + "15" -->
     <string name="repeat_month_day_join">%1$s %2$s</string>
+    <string name="repeat_nth_weekday">%1$s %2$s</string>
 
     <!-- List row meta line -->
     <string name="meta_start">from %s</string>
@@ -165,6 +169,16 @@
         <item>year(s)</item>
     </string-array>
 
+    <!-- Index 0 = by date; 1..4 = 1st..4th; 5 = last -->
+    <string-array name="week_of_month_labels">
+        <item>By date</item>
+        <item>1st</item>
+        <item>2nd</item>
+        <item>3rd</item>
+        <item>4th</item>
+        <item>Last</item>
+    </string-array>
+
     <!-- Collapsible edit sections / quick add -->
     <string name="summary_no_dates">No dates</string>
     <string name="summary_off">Off</string>
@@ -174,6 +188,9 @@
     <string name="shortcut_tomorrow">Tomorrow</string>
     <string name="shortcut_next_week">Next week</string>
     <string name="shortcut_no_date">No date</string>
+    <string name="shortcut_one_month">In 1 month</string>
+    <string name="shortcut_three_months">In 3 months</string>
+    <string name="shortcut_one_year">In 1 year</string>
     <string name="action_repeat_customize">Customize…</string>
     <string name="action_repeat_customize_hide">Hide details</string>
     <string name="action_expand_section">Show or hide this section</string>

@@ -116,6 +116,7 @@ public final class TodoCsv {
     @NonNull
     public static String export(@NonNull List<Todo> todos) {
         StringBuilder out = new StringBuilder();
+        out.append(Csv.BOM);
         out.append(Csv.formatRow(HEADER)).append('\n');
         for (Todo todo : todos) {
             out.append(Csv.formatRow(toRow(todo))).append('\n');
@@ -135,7 +136,7 @@ public final class TodoCsv {
         row.add(todo.repeatType.name().toLowerCase(Locale.ROOT));
         row.add(Integer.toString(Math.max(1, todo.repeatInterval)));
         row.add(formatWeekRule(todo.weekRule));
-        row.add(formatNumberRule(RepeatRule.monthDays(todo.monthRule)));
+        row.add(formatMonthRule(todo));
         row.add(formatNumberRule(RepeatRule.months(todo.yearRule)));
         row.add(DateUtils.toIso(todo.repeatEndDate));
         row.add(todo.notify ? "true" : "false");
@@ -143,6 +144,15 @@ public final class TodoCsv {
         row.add(todo.completed ? "true" : "false");
         row.add(DateUtils.toIso(todo.completedDate));
         return row;
+    }
+
+    private static String formatMonthRule(Todo todo) {
+        if (todo.weekOfMonth > 0) {
+            return todo.weekOfMonth >= Todo.WEEK_OF_MONTH_LAST
+                    ? "LAST"
+                    : "#" + todo.weekOfMonth;
+        }
+        return formatNumberRule(RepeatRule.monthDays(todo.monthRule));
     }
 
     private static String formatWeekRule(int weekRule) {
@@ -261,7 +271,19 @@ public final class TodoCsv {
         }
         todo.repeatInterval = parseInt(cell(row, columns, COL_REPEAT_INTERVAL), 1);
         todo.weekRule = parseWeekRule(cell(row, columns, COL_WEEK_RULE));
-        todo.monthRule = parseNumberRule(cell(row, columns, COL_MONTH_RULE), 1, 31);
+        String rawMonthRule = cell(row, columns, COL_MONTH_RULE);
+        int parsedWeekOfMonth = parseWeekOfMonth(rawMonthRule);
+        if (parsedWeekOfMonth > 0) {
+            todo.weekOfMonth = parsedWeekOfMonth;
+            todo.monthRule = 0;
+            int embeddedWeekdays = parseEmbeddedWeekRule(rawMonthRule);
+            if (embeddedWeekdays != 0 && todo.weekRule == 0) {
+                todo.weekRule = embeddedWeekdays;
+            }
+        } else {
+            todo.weekOfMonth = 0;
+            todo.monthRule = parseNumberRule(rawMonthRule, 1, 31);
+        }
         todo.yearRule = parseNumberRule(cell(row, columns, COL_YEAR_RULE), 1, 12);
         todo.repeatEndDate = DateUtils.parseDate(cell(row, columns, COL_REPEAT_END));
 
@@ -363,6 +385,50 @@ public final class TodoCsv {
             // not a weekday
         }
         return -1;
+    }
+
+    /**
+     * Parses nth-weekday tokens in {@code month_rule}, such as {@code "#3"},
+     * {@code "3RD"}, {@code "LAST"}, {@code "第3"}, {@code "最終"} or {@code "3:MON"}.
+     * Returns 0 when {@code raw} represents normal day-of-month numbers.
+     */
+    static int parseWeekOfMonth(@Nullable String raw) {
+        String value = emptyToNull(raw);
+        if (value == null) {
+            return 0;
+        }
+        String head = value.contains(":") ? value.substring(0, value.indexOf(':')).trim() : value;
+        String upper = head.toUpperCase(Locale.ROOT);
+        if (upper.equals("LAST") || upper.startsWith("最終")) {
+            return Todo.WEEK_OF_MONTH_LAST;
+        }
+        if (upper.startsWith("#") && upper.length() == 2 && Character.isDigit(upper.charAt(1))) {
+            int n = upper.charAt(1) - '0';
+            return (n >= 1 && n <= 4) ? n : 0;
+        }
+        if (upper.startsWith("第") && upper.length() >= 2 && Character.isDigit(upper.charAt(1))) {
+            int n = upper.charAt(1) - '0';
+            return (n >= 1 && n <= 4) ? n : 0;
+        }
+        if (upper.equals("1ST") || upper.equals("2ND") || upper.equals("3RD") || upper.equals("4TH")) {
+            return upper.charAt(0) - '0';
+        }
+        if (value.contains(":") && head.length() == 1 && Character.isDigit(head.charAt(0))) {
+            int n = head.charAt(0) - '0';
+            return (n >= 1 && n <= 4) ? n : 0;
+        }
+        return 0;
+    }
+
+    private static int parseEmbeddedWeekRule(@Nullable String raw) {
+        if (raw == null) {
+            return 0;
+        }
+        int colon = raw.indexOf(':');
+        if (colon >= 0 && colon + 1 < raw.length()) {
+            return parseWeekRule(raw.substring(colon + 1));
+        }
+        return 0;
     }
 
     /** Accepts "1|15", "1,15" and "1 15" within the given inclusive bounds. */

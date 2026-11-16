@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.mugime.kotodo.R;
@@ -46,7 +47,11 @@ public final class NotificationScheduler {
     /** Alarms further out than this are re-armed on a later app launch instead. */
     private static final int HORIZON_DAYS = 120;
 
+    /** Window within which a boot broadcast is skipped if KotodoApp.onCreate just scheduled. */
+    private static final long DEDUP_WINDOW_MILLIS = 10_000L;
+
     private static final ExecutorService worker = Executors.newSingleThreadExecutor();
+    private static volatile long lastScheduledAtMillis = 0L;
 
     private NotificationScheduler() {
     }
@@ -83,8 +88,33 @@ public final class NotificationScheduler {
      * Runs asynchronously, so it is safe to call from any thread.
      */
     public static void rescheduleAll(@NonNull Context context, @NonNull LocalDate today) {
+        rescheduleAll(context, today, false, null);
+    }
+
+    /**
+     * Cancels every previously armed alarm and re-arms the current set.
+     * When {@code skipIfRecent} is true (used by {@link BootReceiver} on
+     * {@code ACTION_BOOT_COMPLETED}), skips the pass if {@code KotodoApp.onCreate}
+     * already ran a reschedule moments ago during cold process startup.
+     */
+    public static void rescheduleAll(@NonNull Context context, @NonNull LocalDate today,
+                                     boolean skipIfRecent, @Nullable Runnable onComplete) {
         Context appContext = context.getApplicationContext();
-        worker.execute(() -> rescheduleNow(appContext, today));
+        worker.execute(() -> {
+            try {
+                if (skipIfRecent) {
+                    long elapsed = System.currentTimeMillis() - lastScheduledAtMillis;
+                    if (lastScheduledAtMillis > 0L && elapsed >= 0L && elapsed < DEDUP_WINDOW_MILLIS) {
+                        return;
+                    }
+                }
+                rescheduleNow(appContext, today);
+            } finally {
+                if (onComplete != null) {
+                    onComplete.run();
+                }
+            }
+        });
     }
 
     private static void cancelAlarm(Context context, long todoId) {
@@ -141,6 +171,7 @@ public final class NotificationScheduler {
         }
 
         prefs.edit().putStringSet(KEY_SCHEDULED_IDS, scheduled).commit();
+        lastScheduledAtMillis = System.currentTimeMillis();
     }
 
     private static void schedule(AlarmManager alarmManager, Context context, long todoId, long triggerAt) {

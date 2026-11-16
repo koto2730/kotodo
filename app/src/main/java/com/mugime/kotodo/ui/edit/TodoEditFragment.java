@@ -42,6 +42,7 @@ import com.mugime.kotodo.elements.RepeatType;
 import com.mugime.kotodo.elements.Todo;
 import com.mugime.kotodo.ui.TodoFormatter;
 import com.mugime.kotodo.utils.DateUtils;
+import com.mugime.kotodo.utils.RepeatRule;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -104,8 +105,11 @@ public class TodoEditFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(TodoEditViewModel.class);
 
         buildPriorityChips();
+        buildStartShortcuts();
         buildDueShortcuts();
+        buildRepeatEndShortcuts();
         buildRepeatTypeChips();
+        buildWeekOfMonthChips();
         buildWeekChips();
         buildMonthDayChips();
         buildMonthChips();
@@ -187,6 +191,7 @@ public class TodoEditFragment extends Fragment {
         // Every control that feeds the cycle description refreshes the preview, so the
         // "毎週 (月・水)" line under the pickers always matches what is selected.
         binding.chipsRepeatType.setOnCheckedStateChangeListener((group, ids) -> refreshRepeatSections());
+        binding.chipsWeekOfMonth.setOnCheckedStateChangeListener((group, ids) -> refreshRepeatSections());
         binding.chipsWeekRule.setOnCheckedStateChangeListener((group, ids) -> refreshRepeatSections());
         binding.chipsMonthRule.setOnCheckedStateChangeListener((group, ids) -> refreshRepeatSections());
         binding.chipsYearRule.setOnCheckedStateChangeListener((group, ids) -> refreshRepeatSections());
@@ -296,6 +301,25 @@ public class TodoEditFragment extends Fragment {
                 ? getString(R.string.summary_none) : previewText());
     }
 
+    /** Today / Tomorrow / Next week one-tap choices under the start date. */
+    private void buildStartShortcuts() {
+        binding.chipsStartShortcuts.removeAllViews();
+        addStartShortcut(R.string.shortcut_today, 0);
+        addStartShortcut(R.string.shortcut_tomorrow, 1);
+        addStartShortcut(R.string.shortcut_next_week, 7);
+    }
+
+    private void addStartShortcut(int labelRes, int daysFromToday) {
+        Chip chip = (Chip) LayoutInflater.from(requireContext())
+                .inflate(R.layout.view_action_chip, binding.chipsStartShortcuts, false);
+        chip.setText(labelRes);
+        chip.setOnClickListener(v -> withWorking(todo -> {
+            todo.startDate = DateUtils.today().plusDays(daysFromToday);
+            refreshDates();
+        }));
+        binding.chipsStartShortcuts.addView(chip);
+    }
+
     /** Today / Tomorrow / Next week one-tap choices under the due date. */
     private void buildDueShortcuts() {
         binding.chipsDueShortcuts.removeAllViews();
@@ -313,6 +337,26 @@ public class TodoEditFragment extends Fragment {
             refreshDates();
         }));
         binding.chipsDueShortcuts.addView(chip);
+    }
+
+    /** +1 month / +3 months / +1 year one-tap choices under the repeat end date. */
+    private void buildRepeatEndShortcuts() {
+        binding.chipsRepeatEndShortcuts.removeAllViews();
+        addRepeatEndShortcut(R.string.shortcut_one_month, 1);
+        addRepeatEndShortcut(R.string.shortcut_three_months, 3);
+        addRepeatEndShortcut(R.string.shortcut_one_year, 12);
+    }
+
+    private void addRepeatEndShortcut(int labelRes, int monthsFromAnchor) {
+        Chip chip = (Chip) LayoutInflater.from(requireContext())
+                .inflate(R.layout.view_action_chip, binding.chipsRepeatEndShortcuts, false);
+        chip.setText(labelRes);
+        chip.setOnClickListener(v -> withWorking(todo -> {
+            LocalDate base = todo.anchorDate() != null ? todo.anchorDate() : DateUtils.today();
+            todo.repeatEndDate = base.plusMonths(monthsFromAnchor);
+            refreshDates();
+        }));
+        binding.chipsRepeatEndShortcuts.addView(chip);
     }
 
     // ------------------------------------------------------------------ chips
@@ -338,6 +382,16 @@ public class TodoEditFragment extends Fragment {
             Chip chip = newChip(binding.chipsRepeatType, labels[i]);
             chip.setTag(types[i]);
             binding.chipsRepeatType.addView(chip);
+        }
+    }
+
+    private void buildWeekOfMonthChips() {
+        String[] labels = getResources().getStringArray(R.array.week_of_month_labels);
+        binding.chipsWeekOfMonth.removeAllViews();
+        for (int i = 0; i < labels.length; i++) {
+            Chip chip = newChip(binding.chipsWeekOfMonth, labels[i]);
+            chip.setTag(i);
+            binding.chipsWeekOfMonth.addView(chip);
         }
     }
 
@@ -392,6 +446,7 @@ public class TodoEditFragment extends Fragment {
         binding.inputGroup.setText(todo.groupName, false);
 
         checkByTag(binding.chipsPriority, todo.priority);
+        selectWeekOfMonth(todo.weekOfMonth);
         applyMask(binding.chipsWeekRule, todo.weekRule);
         applyMask(binding.chipsMonthRule, todo.monthRule);
         applyMask(binding.chipsYearRule, todo.yearRule);
@@ -400,8 +455,8 @@ public class TodoEditFragment extends Fragment {
         binding.inputRepeatInterval.setText(String.valueOf(Math.max(1, todo.repeatInterval)));
         // Anything beyond a plain "every day/week/..." is tucked behind "Customize"; open it
         // up front when this todo already uses it, so nothing configured stays hidden.
-        if (todo.repeat && (todo.repeatInterval > 1 || todo.weekRule != 0 || todo.monthRule != 0
-                || todo.yearRule != 0 || todo.repeatEndDate != null)) {
+        if (todo.repeat && (todo.repeatInterval > 1 || todo.weekOfMonth != 0 || todo.weekRule != 0
+                || todo.monthRule != 0 || todo.yearRule != 0 || todo.repeatEndDate != null)) {
             viewModel.expandedSections().add(SECTION_REPEAT_CUSTOM);
         }
 
@@ -447,19 +502,27 @@ public class TodoEditFragment extends Fragment {
         RepeatType type = selectedRepeatType();
         boolean repeating = type != RepeatType.NONE;
         boolean custom = repeating && isExpanded(SECTION_REPEAT_CUSTOM);
+        boolean monthlyOrYearly = repeating && (type == RepeatType.MONTHLY || type == RepeatType.YEARLY);
+        int weekOfMonth = monthlyOrYearly ? selectedWeekOfMonth() : 0;
 
         binding.repeatSection.setVisibility(repeating ? View.VISIBLE : View.GONE);
         binding.repeatCustomSection.setVisibility(custom ? View.VISIBLE : View.GONE);
         binding.buttonRepeatCustom.setText(custom
                 ? R.string.action_repeat_customize_hide : R.string.action_repeat_customize);
 
+        binding.monthModeSection.setVisibility(monthlyOrYearly ? View.VISIBLE : View.GONE);
         binding.weekRuleSection.setVisibility(
-                repeating && type == RepeatType.WEEKLY ? View.VISIBLE : View.GONE);
-        binding.monthRuleSection.setVisibility(
-                repeating && (type == RepeatType.MONTHLY || type == RepeatType.YEARLY)
+                (repeating && type == RepeatType.WEEKLY) || (monthlyOrYearly && weekOfMonth > 0)
                         ? View.VISIBLE : View.GONE);
+        binding.monthRuleSection.setVisibility(
+                monthlyOrYearly && weekOfMonth == 0 ? View.VISIBLE : View.GONE);
         binding.yearRuleSection.setVisibility(
                 repeating && type == RepeatType.YEARLY ? View.VISIBLE : View.GONE);
+
+        boolean clampedDaysSelected = monthlyOrYearly && weekOfMonth == 0
+                && RepeatRule.hasClampedMonthDays(readMask(binding.chipsMonthRule));
+        binding.hintRepeatText.setText(clampedDaysSelected
+                ? R.string.hint_repeat_month_end_clamp : R.string.hint_repeat);
 
         binding.labelIntervalUnit.setText(intervalUnitLabel(type));
         binding.repeatPreview.setText(previewText());
@@ -484,9 +547,12 @@ public class TodoEditFragment extends Fragment {
     /** Live description of the cycle as currently configured, shown under the pickers. */
     private String previewText() {
         Todo preview = new Todo();
-        preview.repeat = selectedRepeatType() != RepeatType.NONE;
-        preview.repeatType = selectedRepeatType();
+        RepeatType type = selectedRepeatType();
+        preview.repeat = type != RepeatType.NONE;
+        preview.repeatType = type;
         preview.repeatInterval = readInterval();
+        preview.weekOfMonth = (type == RepeatType.MONTHLY || type == RepeatType.YEARLY)
+                ? selectedWeekOfMonth() : 0;
         preview.weekRule = readMask(binding.chipsWeekRule);
         preview.monthRule = readMask(binding.chipsMonthRule);
         preview.yearRule = readMask(binding.chipsYearRule);
@@ -579,6 +645,8 @@ public class TodoEditFragment extends Fragment {
         working.repeatType = selectedRepeatType();
         working.repeat = working.repeatType != RepeatType.NONE;
         working.repeatInterval = readInterval();
+        working.weekOfMonth = (working.repeatType == RepeatType.MONTHLY
+                || working.repeatType == RepeatType.YEARLY) ? selectedWeekOfMonth() : 0;
         working.weekRule = readMask(binding.chipsWeekRule);
         working.monthRule = readMask(binding.chipsMonthRule);
         working.yearRule = readMask(binding.chipsYearRule);
@@ -650,6 +718,20 @@ public class TodoEditFragment extends Fragment {
 
     private void selectRepeatType(RepeatType type) {
         checkByTag(binding.chipsRepeatType, type);
+    }
+
+    private int selectedWeekOfMonth() {
+        for (int i = 0; i < binding.chipsWeekOfMonth.getChildCount(); i++) {
+            View child = binding.chipsWeekOfMonth.getChildAt(i);
+            if (child instanceof Chip && ((Chip) child).isChecked()) {
+                return (Integer) child.getTag();
+            }
+        }
+        return 0;
+    }
+
+    private void selectWeekOfMonth(int weekOfMonth) {
+        checkByTag(binding.chipsWeekOfMonth, Math.max(0, Math.min(Todo.WEEK_OF_MONTH_LAST, weekOfMonth)));
     }
 
     private void checkByTag(ChipGroup group, Object tag) {

@@ -53,11 +53,14 @@ public class FilterSortSheet extends BottomSheetDialogFragment {
         ListOptions options = viewModel.getOptions();
         binding.switchAscending.setChecked(options.ascending);
         binding.switchHideCompleted.setChecked(options.hideCompleted);
+        binding.switchViewerMode.setChecked(options.viewerMode);
 
         binding.switchAscending.setOnCheckedChangeListener((button, checked) ->
                 update(current -> current.ascending = checked));
         binding.switchHideCompleted.setOnCheckedChangeListener((button, checked) ->
                 update(current -> current.hideCompleted = checked));
+        binding.switchViewerMode.setOnCheckedChangeListener((button, checked) ->
+                update(current -> current.viewerMode = checked));
         binding.buttonReset.setOnClickListener(v -> resetFilters());
 
         viewModel.getGroups().observe(getViewLifecycleOwner(), this::buildGroupChips);
@@ -193,6 +196,7 @@ public class FilterSortSheet extends BottomSheetDialogFragment {
         viewModel.setOptions(updated);
 
         binding.switchHideCompleted.setChecked(false);
+        binding.switchViewerMode.setChecked(false);
         buildTimeFilterChips();
         buildPriorityChips();
         buildGroupChips(viewModel.getGroups().getValue());

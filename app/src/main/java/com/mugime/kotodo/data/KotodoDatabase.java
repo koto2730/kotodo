@@ -16,7 +16,7 @@ import com.mugime.kotodo.elements.Todo;
  * The on-device SQLite database. There is no server and no sync: this file under
  * {@code /data/data/com.mugime.kotodo/databases/} is the single source of truth.
  */
-@Database(entities = {Todo.class}, version = 3, exportSchema = false)
+@Database(entities = {Todo.class}, version = 4, exportSchema = false)
 @TypeConverters({Converters.class})
 public abstract class KotodoDatabase extends RoomDatabase {
 
@@ -40,6 +40,14 @@ public abstract class KotodoDatabase extends RoomDatabase {
         }
     };
 
+    /** Adds {@link Todo#weekOfMonth} for nth-weekday monthly/yearly repeat rules. */
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE todos ADD COLUMN weekOfMonth INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
     public abstract TodoDao todoDao();
 
     public static KotodoDatabase getInstance(Context context) {
@@ -50,7 +58,7 @@ public abstract class KotodoDatabase extends RoomDatabase {
                                     context.getApplicationContext(),
                                     KotodoDatabase.class,
                                     DB_NAME)
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                             .build();
                 }
             }

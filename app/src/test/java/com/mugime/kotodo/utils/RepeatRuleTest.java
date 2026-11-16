@@ -440,4 +440,76 @@ public class RepeatRuleTest {
         assertEquals(LocalDate.of(2026, 7, 27), next.dueDate);
         assertNull(next.startDate);
     }
+
+    @Test
+    public void nextOccurrenceCatchesUpEvenWhenOverdueByMoreThan500Cycles() {
+        Todo daily = repeating(RepeatType.DAILY, 1);
+        daily.startDate = LocalDate.of(2020, 1, 1);
+        daily.dueDate = LocalDate.of(2020, 1, 3);
+
+        LocalDate today = LocalDate.of(2026, 7, 25);
+        Todo nextDaily = RepeatRule.nextOccurrence(daily, today);
+        assertNotNull(nextDaily);
+        assertEquals(LocalDate.of(2026, 7, 26), nextDaily.dueDate);
+        assertEquals(LocalDate.of(2026, 7, 24), nextDaily.startDate);
+
+        Todo weekly = repeating(RepeatType.WEEKLY, 1);
+        weekly.dueDate = LocalDate.of(2010, 1, 4); // Monday, >800 weeks before today
+        weekly.weekRule = weekMask(0); // Monday
+        Todo nextWeekly = RepeatRule.nextOccurrence(weekly, today);
+        assertNotNull(nextWeekly);
+        assertTrue(nextWeekly.dueDate.isAfter(today));
+        assertEquals(DayOfWeek.MONDAY, nextWeekly.dueDate.getDayOfWeek());
+    }
+
+    @Test
+    public void monthlyNthWeekdayAndLastWeekdayRules() {
+        // 3rd Monday of every month
+        Todo thirdMonday = repeating(RepeatType.MONTHLY, 1);
+        thirdMonday.weekOfMonth = 3;
+        thirdMonday.weekRule = weekMask(0); // Monday
+
+        // July 2026: 1st is Wed -> Mondays are 6, 13, 20, 27. 3rd Monday is 2026-07-20.
+        assertEquals(LocalDate.of(2026, 7, 20),
+                RepeatRule.nextDateAfter(thirdMonday, LocalDate.of(2026, 7, 1)));
+        // After 2026-07-20 -> August 2026: 1st is Sat -> Mondays are 3, 10, 17, 24, 31. 3rd Monday is 2026-08-17.
+        assertEquals(LocalDate.of(2026, 8, 17),
+                RepeatRule.nextDateAfter(thirdMonday, LocalDate.of(2026, 7, 20)));
+
+        // Last Friday of every month
+        Todo lastFriday = repeating(RepeatType.MONTHLY, 1);
+        lastFriday.weekOfMonth = Todo.WEEK_OF_MONTH_LAST;
+        lastFriday.weekRule = weekMask(4); // Friday
+
+        // July 2026 ends on Friday July 31; August 2026 ends on Monday Aug 31 so last Friday is Aug 28.
+        assertEquals(LocalDate.of(2026, 7, 31),
+                RepeatRule.nextDateAfter(lastFriday, LocalDate.of(2026, 7, 25)));
+        assertEquals(LocalDate.of(2026, 8, 28),
+                RepeatRule.nextDateAfter(lastFriday, LocalDate.of(2026, 7, 31)));
+    }
+
+    @Test
+    public void yearlyNthWeekdayRule() {
+        // Every year in October on the 2nd Monday (e.g. Sports Day)
+        Todo secondMondayOct = repeating(RepeatType.YEARLY, 1);
+        secondMondayOct.yearRule = monthMask(10);
+        secondMondayOct.weekOfMonth = 2;
+        secondMondayOct.weekRule = weekMask(0); // Monday
+
+        // Oct 2026: 1st is Thu -> Mondays are 5, 12, 19, 26 -> 2nd Monday is 2026-10-12
+        assertEquals(LocalDate.of(2026, 10, 12),
+                RepeatRule.nextDateAfter(secondMondayOct, LocalDate.of(2026, 7, 25)));
+        // Next year Oct 2027: 1st is Fri -> Mondays are 4, 11, 18, 25 -> 2nd Monday is 2027-10-11
+        assertEquals(LocalDate.of(2027, 10, 11),
+                RepeatRule.nextDateAfter(secondMondayOct, LocalDate.of(2026, 10, 12)));
+    }
+
+    @Test
+    public void hasClampedMonthDaysDetectsDays29To31() {
+        assertFalse(RepeatRule.hasClampedMonthDays(0));
+        assertFalse(RepeatRule.hasClampedMonthDays(dayMask(1, 15, 28)));
+        assertTrue(RepeatRule.hasClampedMonthDays(dayMask(29)));
+        assertTrue(RepeatRule.hasClampedMonthDays(dayMask(30)));
+        assertTrue(RepeatRule.hasClampedMonthDays(dayMask(31)));
+    }
 }

@@ -29,6 +29,9 @@ public class Todo {
     /** Bit positions for {@link #yearRule}: January is bit 0 ... December is bit 11. */
     public static final int YEAR_RULE_ALL = 0b111111111111;
 
+    /** Value of {@link #weekOfMonth} meaning the last occurrence of the weekday in the month. */
+    public static final int WEEK_OF_MONTH_LAST = 5;
+
     /** Default reminder time: 09:00 local time. */
     public static final int DEFAULT_NOTIFY_MINUTE = 9 * 60;
 
@@ -66,6 +69,13 @@ public class Todo {
 
     /** Selected days of month for {@link RepeatType#MONTHLY} and {@link RepeatType#YEARLY}. */
     public int monthRule = 0;
+
+    /**
+     * Nth-weekday selector for {@link RepeatType#MONTHLY} and {@link RepeatType#YEARLY}:
+     * 0 = use {@link #monthRule} (day of month), 1..4 = 1st..4th weekday,
+     * {@link #WEEK_OF_MONTH_LAST} (5) = last weekday of the month (using {@link #weekRule}).
+     */
+    public int weekOfMonth = 0;
 
     /** Selected months for {@link RepeatType#YEARLY}. */
     public int yearRule = 0;
@@ -194,6 +204,7 @@ public class Todo {
         copy.repeatInterval = repeatInterval;
         copy.weekRule = weekRule;
         copy.monthRule = monthRule;
+        copy.weekOfMonth = weekOfMonth;
         copy.yearRule = yearRule;
         copy.repeatEndDate = repeatEndDate;
         copy.dueDate = dueDate;
