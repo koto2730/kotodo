@@ -15,9 +15,16 @@
           to be repeated here even though Theme.Kotodo.AlertDialog itself is only
           declared once, in values/themes.xml.
         -->
+        <item name="colorControlActivated">?attr/colorSecondary</item>
+        <item name="textInputStyle">@style/Widget.Kotodo.TextInputLayout.OutlinedBox</item>
         <item name="alertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
         <item name="materialAlertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
         <item name="materialCalendarTheme">@style/ThemeOverlay.Kotodo.MaterialCalendar</item>
         <item name="materialTimePickerTheme">@style/ThemeOverlay.Kotodo.MaterialTimePicker</item>
+    </style>
+
+    <style name="Theme.Kotodo.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Dark">
+        <item name="android:colorBackground">?attr/colorSurface</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
     </style>
 </resources>

@@ -13,6 +13,8 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Dialog action buttons ("OK", "Delete"...) get the 朱 accent instead of
              the default colorPrimary - see Theme.Kotodo.AlertDialog below. -->
+        <item name="colorControlActivated">?attr/colorSecondary</item>
+        <item name="textInputStyle">@style/Widget.Kotodo.TextInputLayout.OutlinedBox</item>
         <item name="alertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
         <item name="materialAlertDialogTheme">@style/Theme.Kotodo.AlertDialog</item>
         <item name="materialCalendarTheme">@style/ThemeOverlay.Kotodo.MaterialCalendar</item>
@@ -72,6 +74,26 @@
         <item name="android:textColor">?attr/colorOnSecondary</item>
     </style>
 
+    <!--
+      Text input boxes. Stock Material OutlinedBox uses ?attr/colorPrimary for the
+      focused border and floating hint label, which in dark mode is @color/slate_800
+      (#263238) and disappears against the dark sheet/screen surface. Using a dedicated
+      stroke selector (vermilion accent when focused, readable slate when unfocused)
+      keeps the box clearly visible in both light and dark modes.
+    -->
+    <style name="Widget.Kotodo.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/text_input_stroke</item>
+        <item name="hintTextColor">?attr/colorSecondary</item>
+        <item name="android:textColorHint">@color/meta_text</item>
+    </style>
+
+    <style name="Widget.Kotodo.TextInputLayout.OutlinedBox.ExposedDropdownMenu" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxStrokeColor">@color/text_input_stroke</item>
+        <item name="hintTextColor">?attr/colorSecondary</item>
+        <item name="android:textColorHint">@color/meta_text</item>
+        <item name="endIconTint">@color/section_label</item>
+    </style>
+
     <style name="Theme.Kotodo.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -79,7 +101,10 @@
 
     <style name="Theme.Kotodo.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="Theme.Kotodo.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.Kotodo.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light">
+        <item name="android:colorBackground">?attr/colorSurface</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+    </style>
 
     <!-- Small caps-style heading used between form and filter sections. -->
     <style name="Kotodo.SectionLabel" parent="">
